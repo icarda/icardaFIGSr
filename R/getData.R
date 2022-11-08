@@ -282,7 +282,7 @@ getTraitsData <- function(IG, traitID) {
     )
     
     response <- httr::POST(handle = handle, body = body)
-    result <- httr::content(response, type = "text/csv", col_types = "nnncnnnnnnnn")
+    result <- httr::content(response, type = "text/csv", col_types = "nnncnnnnnnnc")
     pattern = "invalid"
     
     if(grepl(pattern, response, ignore.case = TRUE)){
