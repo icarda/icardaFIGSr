@@ -2,7 +2,7 @@
 % Please edit documentation in R/extractWCdata.R
 \name{extractWCdata}
 \alias{extractWCdata}
-\title{Extracting World Climatic Data}
+\title{Extracting historical climate data from WorldClim 2.1}
 \usage{
 extractWCdata(sites, long, lat, var, res = 2.5)
 }
@@ -13,19 +13,20 @@ extractWCdata(sites, long, lat, var, res = 2.5)
 
 \item{lat}{character. Name of column from \code{sites} with latitude.}
 
-\item{var}{character. Climatic variable(s) to be extracted: 'tavg', 'tmin', 'tmax', 'prec', 'bio', 'srad', 'vapr', 'wind'}
+\item{var}{character. Climatic variable(s) to be extracted: 'tavg', 'tmin', 'tmax', 'prec', 'bio', 'srad', 'vapr', 'wind'.}
 
-\item{res}{numeric. Spatial resolution. Default 2.5}
+\item{res}{numeric. Spatial resolution. Default 2.5.}
 }
 \value{
 An object of class "data.frame" with specified climatic variables for coordinates in \code{sites}.
 }
 \description{
 extractWCdata returns a data frame based on specified climatic variables.
+This function modifies the \href{https://github.com/rspatial/raster/blob/master/R/getData.R}{getData function from raster R package}, to extract world climate data of version 2.1 instead of version 1.4.
 }
 \details{
-A grid can be created with any particular coordinates and used as input for \code{sites} (see section 'Examples'). \code{extractWCdata} will use the given coordinates to extract data from the WorldClim2.1 database.
-The extracted data will most likely contain NA's for sites where climatic data is not available. These should be removed or imputed before using the data to make predictions.
+A grid can be created with any particular coordinates and used as input for \code{sites} (see section 'Examples'). \code{extractWCdata} will use the given coordinates to extract data from the WorldClim 2.1 database.
+The extracted data will most likely contain NAs for sites where climate data is not available. These should be removed or imputed before using the data to make predictions.
 }
 \examples{
 if(interactive()){
