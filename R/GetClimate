@@ -1,0 +1,95 @@
+# Load necessary libraries
+library(sf)
+library(climateR)
+library(dplyr)
+library(tidyr)
+
+
+
+#' Extract TerraClimate Data
+#'
+#'
+#' This function extracts specified TerraClimate parameters for given coordinates (sf object)
+#' over a specified time period , and returns the data in a tidy format.
+#' Its the newer version of extracting climate data compared to getData from raster package.
+#'
+#' @param sf_object An sf object containing the coordinates.
+#' @param startdate A string representing the start date in the format "YYYY-MM-DD".
+#' @param enddate A string representing the end date in the format "YYYY-MM-DD".
+#' @param parameters A string or vector of characters representing the TerraClimate parameters to be extracted : c('aet', 'water_deficit', 'palmer', 'pet', 'prcp', 'q', 'soilm', 'srad', 'swe', 'tmax', 'tmin', 'vp', 'vpd', 'wind')
+#' @return A data frame containing the extracted TerraClimate data.
+#' @importFrom sf st_buffer
+#' @importFrom climateR getTerraClim 
+#' @importFrom dplyr bind_rows
+#' @importFrom tidyr pivot_longer
+#' @author Chafik Analy 
+#' @examples
+#' \dontrun{
+#'  
+#'   Sites <- data.frame(lon = c(-98, -100.9), lat = c(47.6, 47.9)),
+
+#'   sf_object <- st_as_sf(Sites, coords = c("lon", "lat"), crs = 4326)
+
+#'   startdate <- "2019-01-01"
+#'   enddate <- "2020-01-01"
+#'   parameters <- c("prcp", "tmax", "tmin")
+#'   data <- extract_terraclimate_data(sf_object, startdate, enddate, parameters)
+#' }
+
+extract_terraclimate_data <- function(sf_object, startdate, enddate, parameters) {
+
+  # Input validation
+  if (!inherits(sf_object, "sf")) stop("sf_object must be an sf object.")
+  if (!is.character(startdate) || length(startdate) != 1) stop("startdate must be a single character string.")
+  if (!is.character(enddate) || length(enddate) != 1) stop("enddate must be a single character string.")
+  if (!is.character(parameters)) stop("parameters must be a character vector or string.")
+  
+  # Validate parameters
+  allowed_params <- c('aet', 'water_deficit', 'palmer', 'pet', 'prcp', 'q', 'soilm', 'srad', 'swe', 'tmax', 'tmin', 'vp', 'vpd', 'wind')
+  if (any(!parameters %in% allowed_params)) {
+    stop("Invalid parameter(s) specified. Allowed parameters are: ", paste(allowed_params, collapse = ", "), ".")
+  }
+  
+  # Determine a local UTM zone CRS based on the median longitude
+  utm_zone <- floor((median(st_coordinates(sf_object)[, "X"]) + 180) / 6) + 1
+  utm_crs <- paste0("+proj=utm +zone=", utm_zone, " +datum=WGS84 +units=m +no_defs")
+  
+  # Transform to UTM, create buffer, then transform back to original CRS
+  sf_object_utm <- st_transform(sf_object, crs = utm_crs)
+  sf_circles_utm <- st_buffer(sf_object_utm, dist = 500)
+  sf_circles <- st_transform(sf_circles_utm, crs = st_crs(sf_object))
+  
+  # Extract climate data
+  climate_data <- climateR::getTerraClim(AOI = sf_circles,
+                                         param = parameters, 
+                                         startDate = startdate,
+                                         endDate = enddate)
+  
+  # Function to process individual parameter
+  process_parameter <- function(param_name) {
+    param_data <- climate_data[[paste0("terraclim_", param_name)]]
+    points_data <- rasterToPoints(param_data)
+    actual_param_name <- sub("terraclim_", "", paste0("terraclim_", param_name))
+    df <- as.data.frame(points_data)
+    df %>%
+      tidyr::pivot_longer(
+        cols = -c(x, y),
+        names_to = "Year_Month",
+        values_to = actual_param_name
+      ) %>%
+      mutate(
+        Year_Month = sub("X", "", Year_Month),
+        Year = substr(Year_Month, 1, 4),
+        Month = sub("\\.", "", substr(Year_Month, 5, nchar(Year_Month)))
+      ) %>%
+      select(x, y, Year, Month, actual_param_name) %>%
+      group_by(x, y, Year, Month)
+  }
+  
+  # Loop through each parameter and bind them together
+  all_params_data_list <- lapply(parameters, process_parameter)
+  all_params_data <- do.call(bind_rows, all_params_data_list)
+  
+  return(all_params_data)
+}
+
