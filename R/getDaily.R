@@ -24,6 +24,7 @@
 #'  # returned (when cv = TRUE)
 #'  daily.cv <- daily[[2]]
 #'  }
+#'  
 #' @seealso
 #'  \code{\link[reshape2]{cast}}
 #' @rdname getDaily
@@ -33,25 +34,33 @@
 
 getDaily <- function(sites, var, cv = FALSE) {
   
+  # Load ICARDA data from a remote source
   message("Data loading started ....")
   load(url("https://grs.icarda.org/FIGS/IcardaFigsData.RData"))
   message("Loading completed!")
-
+  
+  # Filter and reorder the data frames based on the input sites
   daily.climate.df <- droplevels(subset(climate.df, climate.df$site_code %in% sites))
   daily.climate.cv.df <- droplevels(subset(climate.cv.df, climate.cv.df$site_code %in% sites))
   daily.climate.df <- daily.climate.df[order(daily.climate.df$site_code), ]
   daily.climate.cv.df <- daily.climate.cv.df[order(daily.climate.cv.df$site_code), ]
-
+  
+  # Define variable names for the data extraction
   var0 <- c('site_code', 'Day', var)
   cv0 <- paste0(var, '.cv', sep = '')
   cv1 <- cv0[which(cv0 %in% colnames(daily.climate.cv.df))]
   names.cv <- colnames(climate.cv.df)
-
+  
+  # When cv is TRUE
   if(cv) {
+    # Keep only relevant columns
     daily.climate.df <- daily.climate.df[ , var0]
     droplevels(daily.climate.df)
+    
     dailyData <- NULL
     dailyData$site_code <- levels(as.factor(daily.climate.df$site_code))
+    
+    # Calculate average daily values for each variable
     for (i in 3:length(var0)){
       daily.climate.df1 <- daily.climate.df[ , c(1, 2, i)]
       tmp <- reshape2::dcast(daily.climate.df1, site_code ~ Day, mean)
@@ -60,13 +69,18 @@ getDaily <- function(sites, var, cv = FALSE) {
       tmp$site_code <- NULL
       dailyData <- cbind(dailyData, tmp)
     }
+    
+    # If Coefficient of Variation (cv) data is available
     if(any(cv1 %in% names.cv)) {
       var1 <- c('site_code', 'Day', cv1)
       daily.climate.cv.df <- daily.climate.cv.df[ , var1]
       droplevels(daily.climate.cv.df)
+      
       dailyCVData <- NULL
       dailyCVData$site_code <- levels(as.factor(daily.climate.cv.df$site_code))
-      for (i in 3:length(var1)){
+      
+      # Calculate average CV values for each variable
+      for (i in 3:length(var1)){ 
         daily.climate.cv.df1 <- daily.climate.cv.df[ , c(1, 2, i)]
         tmpCV <- reshape2::dcast(daily.climate.cv.df1, site_code ~ Day, mean)
         tmpCV <- tmpCV[ , 1:366]
@@ -74,20 +88,24 @@ getDaily <- function(sites, var, cv = FALSE) {
         tmpCV$site_code <- NULL
         dailyCVData <- cbind(dailyCVData, tmpCV)
       }
-
+      
       result <- list()
       result[[1]] <- dailyData
       result[[2]] <- dailyCVData
       return(result)
     }
   }
-
+  
+  # When cv is FALSE
   else if(!cv) {
     var1 <- c('site_code', 'Day', var)
     daily.climate.df <- daily.climate.df[ , var1]
     droplevels(daily.climate.df)
+    
     dailyData <- NULL
     dailyData$site_code <- levels(as.factor(daily.climate.df$site_code))
+    
+    # Calculate average daily values for each variable
     for (i in 3:length(var1)){
       daily.climate.df1 <- daily.climate.df[ , c(1, 2, i)]
       tmp <- reshape2::dcast(daily.climate.df1, site_code ~ Day, mean)

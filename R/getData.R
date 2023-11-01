@@ -272,6 +272,7 @@ getTraitsData <- function(IG, traitID) {
     
     username <- credentials$username
     password <- credentials$password
+    
     handle <- httr::handle("https://grs.icarda.org/web_services/getTraitsData.php")
     
     body <- list(
