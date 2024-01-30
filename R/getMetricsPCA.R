@@ -74,7 +74,12 @@ getMetricsPCA <- function(yhat, y, classtype, model) {
     
     table1 = as.data.frame.matrix(cm$table)
     measures = rbind(accu[1], ci[1], nir[1], pval[1], kap[1])
-    values = rbind(as.character(as.factor(accu$values)), as.character(as.factor(ci$values)), as.character(as.factor(nir$values)), format(as.numeric(as.character(pval$values), 3)), as.character(as.factor(kap$values)))
+    values = rbind(as.character(as.factor(accu$values)),
+                   as.character(as.factor(ci$values)),
+                   as.character(as.factor(nir$values)),
+                   format(as.numeric(as.character(pval$values), 3)),
+                   as.character(as.factor(kap$values)))
+    
     metrics.df = as.data.frame(values)
     row.names(metrics.df)<- measures$measures
     colnames(metrics.df) <- "Metrics"

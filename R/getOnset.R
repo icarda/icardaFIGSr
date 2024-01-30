@@ -75,6 +75,7 @@ getOnset <- function(sites, crop, var, cv = FALSE) {
   # Message to indicate data loading completed
   message("Loading completed!")
   
+  # Subsetting Onset files by crop
   if (crop == 'ICDW'){
     onsetfile = ICDW_Onset_Phen
   }else if (crop == 'ICB'){

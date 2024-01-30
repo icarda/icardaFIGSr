@@ -113,7 +113,7 @@ extractWCdata <- function(sites, long, lat, var, res = 2.5){
   tryCatch({
     res <- utils::download.file(url = url, destfile = fn,
                                 method = "auto", quiet = FALSE,
-                                mode = "wb", cacheOK = TRUE)
+                                mode = "wb", cacheOK = TRUE, timeout=600)
     if (res == 0) {
       success <- TRUE
     }
@@ -157,4 +157,3 @@ extractWCdata <- function(sites, long, lat, var, res = 2.5){
     stop("Could not download the file.")
   }
 }
-
