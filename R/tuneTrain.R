@@ -1,6 +1,6 @@
 
-#' @title Tuning and Training the Data
-#' @description tuneTrain splits the Data, it is an automatic function for tuning, training, and making predictions, it returns a list containing a model object, data frame and plot.
+#' @title Splitting the Data, Tuning and Training the Data, and Making Predictions
+#' @description Automatic function for tuning and training data, it returns a list containing a model object, data frame and plot.
 #' @param data object of class "data.frame" with target variable and predictor variables.
 #' @param y character. Target variable.
 #' @param p numeric. Proportion of data to be used for training. Default: 0.7
@@ -13,7 +13,11 @@
 #' @param process character. Defines the pre-processing transformation of predictor variables to be done. Options are: "BoxCox", "YeoJohnson", "expoTrans", "center", "scale", "range", "knnImpute", "bagImpute", "medianImpute", "pca", "ica", or "spatialSign". See \code{\link[caret]{preProcess}} for specific details on each pre-processing transformation. Default: c('center', 'scale').
 #' @param positive character. The positive class for the target variable if \code{y} is factor. Usually, it is the first level of the factor.
 #' @param parallelComputing logical. indicates whether to also use the parallel processing. Default: False
+#' @param classtype integer.indicates the number of classes of the traits.
 #' @param ... additional arguments to be passed to \code{createDataPartition}, \code{trainControl} and \code{train} functions in the package \code{caret}.
+#' @param imbalanceMethod Method for handling imbalanced data ("none", "over", "under"). Default: "none".
+#' @param imbalanceThreshold Threshold to determine if data is imbalanced (numeric between 0 and 1). Default: 0.55.
+
 #' @return A list object with results from tuning and training the model selected in \code{method}, together with predictions and class probabilities. The training and test data sets obtained from splitting the data are also returned.
 #'
 #' If \code{y} is factor, class probabilities are calculated for each class. If \code{y} is numeric, predicted values are calculated.
@@ -25,204 +29,361 @@
 #'
 #' For classification models, class probabilities and ROC curve are given in the results. For regression models, predictions and residuals versus predicted plot are given. \code{y} should be converted to either factor if performing classification or numeric if performing regression before specifying it in \code{tuneTrain}.
 #'
-#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz
+#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
 #' @examples
+#' \dontrun{
 #' if(interactive()){
-#'  data(septoriaDurumWC)
-#'  knn.mod <- tuneTrain(data = septoriaDurumWC,y = 'ST_S',method = 'knn',positive = 'R')
-#'  
-#'  nnet.mod <- tuneTrain(data = septoriaDurumWC,y = 'ST_S',method = 'nnet',positive = 'R')
-#'
-#' }
+#' ## Reading local test datasets 
+#' load(paste(getwd(),"/","icardaFIGSr/DurumWheatDHEWC.rda", sep = ""))
+#' load(paste(getwd(),"/","icardaFIGSr/BarleyRNOWC.rda", sep = ""))
+#' data(septoriaDurumWC)
+#' 
+#' ## Binary classification of ST_S
+#' knn.ST_S <- tuneTrain(data = septoriaDurumWC,
+#'                       y =  'ST_S',
+#'                       method = 'knn', 
+#'                       summary = multiClassSummary, 
+#'                       classProbs = TRUE)
+#' 
+#' 
+#' ## Binary classification of RNO with imbalanced data  
+#' knn.RNO <- tuneTrain(data = BarleyRNOWC,
+#'                      y =  'RNO',
+#'                      method = 'knn', 
+#'                      summary = multiClassSummary,
+#'                      imbalanceMethod ="over",
+#'                      imbalanceThreshold = 0.5,
+#'                      classProbs = TRUE, 
+#'                      repeats = 3)
+#' 
+#' 
+#' ## Regression of DHE
+#' svm.DHE <- tuneTrain(data = DurumWheatDHEWC,
+#'                      y =  'DHE',
+#'                      method = 'svmLinear2', 
+#'                      summary = defaultSummary, 
+#'                      classProbs = FALSE, 
+#'                      repeats = 3)
+#' 
+#' #'  }
+#' #' }
 #' @seealso
 #'  \code{\link[caret]{createDataPartition}},
 #'  \code{\link[caret]{trainControl}},
 #'  \code{\link[caret]{train}},
 #'  \code{\link[caret]{predict.train}},
+#'  \code{\link[ROSE]{ovun.sample}},
 #'  \code{\link[ggplot2]{ggplot}},
-#'  \code{\link[plotROC]{geom_roc}},
-#'  \code{\link[plotROC]{calc_auc}}
+#'  \code{\link[pRoc]{auc}},
+#'  \code{\link[pRoc]{roc}},
+#'  \code{\link[pRoc]{ggroc}},
 #' @rdname tuneTrain
 #' @export
-#' @importFrom caret createDataPartition trainControl train predict.train
+#' @importFrom caret createDataPartition trainControl train predict.train confusionmatrix Preprocess
 #' @importFrom utils stack
 #' @importFrom ggplot2 ggplot aes geom_histogram theme_bw scale_colour_brewer scale_fill_brewer labs coord_equal annotate geom_point
-#' @importFrom plotROC geom_roc style_roc calc_auc
 #' @importFrom stats resid
-#' @importFrom foreach registerDoSEQ
-#' @importFrom doParallel registerDoParallel
-#' @importFrom parallel detectCores makeCluster stopCluster
+#' @importFrom ROSE ovun.sample
+#' @umportFrom pRoc auc roc ggroc
+#' @details Imbalance handling methods "over", "under" use the ROSE package
 
-
-tuneTrain <- function (data, y, p = 0.7, method = method, parallelComputing = FALSE,
-                       length = 10, control = "repeatedcv", number = 10, 
-                       repeats = 10, process = c('center', 'scale'),
-                       summary= multiClassSummary,positive, ...) 
-{
-    set.seed(1234) 
-    x = data[which(colnames(data)!= y)]
-    yvec = data[[y]]
-    trainIndex = caret::createDataPartition(y = yvec, p = p,list = FALSE)
-    data.train = as.data.frame(data[trainIndex, ])
-    data.test = as.data.frame(data[-trainIndex, ])
-    split.data = list(trainset = data.train, testset = data.test)
-    trainset = split.data$trainset
-    testset = split.data$testset
-    Train_Index <- row.names(data.train)
-    trainx = trainset[colnames(trainset) %in% colnames(x)]
-    trainy = trainset[[y]]
-    testx = testset[colnames(testset) %in% colnames(x)]
-    testy = testset[[y]]
-
-    if (parallelComputing == TRUE) {
-        cores <- parallel::detectCores()
-        cls <- parallel::makeCluster(cores - 4)
-        doParallel::registerDoParallel(cls)
-    }
-    ctrl = caret::trainControl(method = control, number = number, 
-                               repeats = repeats)
+tuneTrain <- function(data, y, p = 0.7,
+                      method = "knn",
+                      imbalanceMethod = "none", # Imbalanced data handling
+                      imbalanceThreshold = 0.55, # Threshold for imbalance handling
+                      parallelComputing = TRUE, length = 10,
+                      control = "repeatedcv", number = 10, repeats = 10,
+                      process = c('center', 'scale'),
+                      summary = multiClassSummary,
+                      classProbs = FALSE, ...) {
+  
+  # Check if imbalanceThreshold is valid
+  if (imbalanceThreshold < 0 || imbalanceThreshold > 1) {
+    stop("Error: imbalanceThreshold must be between 0 and 1.")
+  }
+  
+  # Ensure target variable exists in the dataset
+  if (!y %in% names(data)) {
+    stop("Error: Target variable not found in the dataset.")
+  }
+  
+  # Define sampling functions
+  overSample <- function(data, y) {
+    formula <- as.formula(paste(y, "~ ."))
+    ovun.sample(formula, data = data, method = "over")$data
+  }
+  
+  underSample <- function(data, y) {
+    formula <- as.formula(paste(y, "~ ."))
+    ovun.sample(formula, data = data, method = "under")$data
+  }
+  
+  # Handle data imbalance
+  handleImbalance <- function(data, y, method = "over", threshold = 0.5) {
+    proportions <- table(data[[y]]) / nrow(data)
+    minProportion <- min(proportions)
     
-    if (method == "treebag") {
-        tune.mod = caret::train(trainx, trainy, method = method, 
-                                tuneLength = length, trControl = ctrl, preProcess = process , ...)
-        train.mod <- tune.mod
-        
+    if (minProportion < threshold) {
+      if (method == "over") {
+        data <- overSample(data, y)
+      } else if (method == "under") {
+        data <- underSample(data, y)
+      } else {
+        warning("Invalid sampling method specified. Returning original data.")
+      }
+    } else {
+      message("Data is balanced above the specified threshold. No sampling applied.")
     }
-    else if (method == "nnet") {
-        tune.mod = caret::train(trainx, trainy, method = method, 
-                                tuneLength = length, trControl = ctrl, 
-                                preProcess = process, trace = FALSE)
-        
-        size <- tune.mod[["bestTune"]][["size"]]
-        
-        if (size - 1 <= 0) {
-            seqStart <- size
-        }
-        else {
-            seqStart <- size - 1
-        }
-        
-        seqStop <- size + 1
-        seqInt <- 1
-        tuneGrid <- expand.grid(.size = seq(seqStart, seqStop, by=seqInt), 
-                                .decay = 0.1^(seq(0.01, 0.08, 0.01))*0.11)
-        
-        ctrl2 = caret::trainControl(method = control, number = number, 
-                                    repeats = repeats, classProbs = TRUE, 
-                                    summaryFunction = summary)
-        
-        train.mod = caret::train(trainx, trainy, method, 
-                                 tuneGrid = tuneGrid, tuneLength = length, trControl = ctrl2, 
-                                 preProcess = process, trace = FALSE, ...)
-        
+    
+    message("Data was successfully balanced.")
+    return(data)
+  }
+  
+  
+  ## Data pre-processing
+  set.seed(1234)
+  
+  # Splitting predictors and target variable
+  x <- data[which(colnames(data) != y)]
+  yvec <- data[[y]]
+  
+  ## Split data into training and test sets
+  trainIndex <- caret::createDataPartition(y = yvec, p = p, list = FALSE)
+  data.train <- data[trainIndex, ]
+  data.test <- data[-trainIndex, ]
+  
+  ## Check if binary classification for imbalance handling
+  if (!is.null(imbalanceMethod) && length(unique(data[[y]])) == 2) {
+    
+    data.train <- handleImbalance(data.train, y, imbalanceMethod, imbalanceThreshold)
+  }
+  
+  ## Preprocessing: Impute missing values and apply scaling
+  preProcValues <- caret::preProcess(data.train, method = process)
+  data.train <- predict(preProcValues, data.train)
+  data.test <- predict(preProcValues, data.test)
+  
+  ## Prepare training and test sets
+  # Filter only the necessary columns for trainx and testx after preprocessing
+  trainx <- data.train[, colnames(data.train) %in% colnames(x), drop = FALSE]
+  testx <- data.test[, colnames(data.test) %in% colnames(x), drop = FALSE]
+  
+  # Extracting target variable for training and test sets
+  trainy <- data.train[[y]]
+  testy <- data.test[[y]]
+  
+  
+  ## Model training
+  require(caret)
+  require(doParallel)
+  require(foreach)
+  
+  # Initialize parallel computing if enabled
+  if (parallelComputing) {
+    cores <- detectCores()
+    # Adjusting cores to reserve at least 1 for the system if all cores are utilized
+    cls <- makeCluster(max(1, cores - 4)) # Ensure at least 1 core remains for the system
+    registerDoParallel(cls)
+  }
+  
+  ctrl = caret::trainControl(method = control, number = number, 
+                             repeats = repeats,
+                             #sampling = subsampling, 
+                             summaryFunction = summary, 
+                             classProbs = classProbs)
+  
+  if (method == "treebag") {
+    tune.mod = caret::train(trainx, trainy, method = method, 
+                            tuneLength = length, trControl = ctrl)
+    train.mod <- tune.mod
+  }
+  
+  else if (method == "nnet") {
+    tune.mod = caret::train(trainx, trainy, method = method, 
+                            tuneLength = length, trControl = ctrl, trace = FALSE)
+    print(tune.mod)
+    size <- tune.mod[["bestTune"]][["size"]]
+    
+    if (size - 1 <= 0) {
+      seqStart <- size
     }
     else {
-        tune.mod = caret::train(trainx, trainy, method = method, 
-                                tuneLength = length, trControl = ctrl, preProcess = process)
-        
-        
-        if (method == "knn") {
-            k <- tune.mod[["bestTune"]][["k"]]
-            
-            if (k - 2 <= 0) {
-                seqStart <- k
-            }
-            else {
-                seqStart <- k - 2
-            }
-            seqStop <- k + 2
-            seqInt <- 1
-            tuneGrid <- expand.grid(.k = seq(seqStart, seqStop, by=seqInt))
-        }
-        else if (method == "rf") {
-            mtry <- tune.mod[["bestTune"]][["mtry"]]
-            
-            if (mtry - 2 <= 0) {
-                seqStart <- mtry
-            }
-            else {
-                seqStart <- mtry - 2
-            }
-            
-            seqStop <- mtry + 2
-            seqInt <- 1
-            tuneGrid <- expand.grid(.mtry = seq(seqStart, seqStop, by=seqInt))
-        }
-        else if (method == "svmLinear2") {
-            cost <- tune.mod[["bestTune"]][["cost"]]
-            
-            if (cost - 0.25 <= 0 || cost - 0.5 <= 0 || cost - 0.75 <= 0 || cost - 1 <= 0) {
-                seqStart <- cost
-            }
-            else {
-                seqStart <- cost - 1
-            }
-            seqStop <- cost + 1
-            seqInt <- 0.25
-            tuneGrid <- expand.grid(.cost = seq(seqStart, seqStop, by=seqInt))
-        }
-        
-        ctrl2 = caret::trainControl(method = control, number = number, 
-                                    repeats = repeats, classProbs = TRUE, 
-                                    summaryFunction = summary)
-        
-        train.mod = caret::train(trainx, trainy, method, 
-                                 tuneGrid = tuneGrid, tuneLength = length, trControl = ctrl2, 
-                                 preProcess = process, ...)
-        
+      seqStart <- size - 1
     }
-    if (parallelComputing == TRUE) {
-        parallel::stopCluster(cls)
-        registerDoSEQ()
-        
-    } 
     
-    if (is.factor(data[[y]])) {
-        if (missing(positive)) {
-            warning("The positive class is not defined!", immediate. = TRUE, noBreaks. = T)
-            positive <- readline(prompt="Please define the positive class for the target variable: ")
-        }
-        prob.mod = as.data.frame(caret::predict.train(train.mod,testx, type = "prob"))
-        prob.newdf = utils::stack(prob.mod)
-        colnames(prob.newdf) = c("Probability", "Class")
-        prob.hist = ggplot2::ggplot(prob.newdf, ggplot2::aes(x = Probability,
-                                                             colour = Class, fill = Class))
-        prob.plot = prob.hist + ggplot2::geom_histogram(alpha = 0.4, 
-                                                        size = 1, position = "identity") + 
-            ggplot2::theme_bw() + 
-            ggplot2::scale_colour_brewer(palette = "Dark2") + 
-            ggplot2::scale_fill_brewer(palette = "Dark2") + 
-            ggplot2::labs(y = "Count")
-        negative = prob.mod[, !names(prob.mod) %in% positive]
-        if (length(levels(data[,c(1)])) == 2) {
-            g1 = ggplot2::ggplot(prob.mod, ggplot2::aes(m = negative, 
-                                                        d = testy)) + plotROC::geom_roc(n.cuts = 0) + 
-                ggplot2::coord_equal() + plotROC::style_roc()
-            plot.roc = g1 + ggplot2::annotate("text", x = 0.75, 
-                                              y = 0.25, label = paste("AUC =", 
-                                                                      round(plotROC::calc_auc(g1)$AUC, 4)))
-            auc = round(plotROC::calc_auc(g1)$AUC, 4)
-            x = list(Tuning = tune.mod, 
-                     Model = train.mod, 
-                     `Class Probabilities` = prob.mod, 
-                     `Class Probabilities Plot` = prob.plot, 
-                     `Area Under ROC Curve` = auc, 
-                     `ROC Curve` = plot.roc,
-                     `TrainingIndex`= Train_Index,
-                     `Training Data` = trainset, 
-                     `Test Data` = testset)
-        }
-        
-        else if(length(levels(data[,c(1)])) != 2){
-            x = list(Tuning = tune.mod, 
-                     Model = train.mod, 
-                     `Class Probabilities` = prob.mod, 
-                     `Class Probabilities Plot` = prob.plot, 
-                     `TrainingIndex`= Train_Index,
-                     `Training Data` = trainset, 
-                     `Test Data` = testset)
-        }
-        
-        return(x)
+    seqStop <- size + 1
+    seqInt <- 1
+    tuneGrid <- expand.grid(.size = seq(seqStart, seqStop, by=seqInt), 
+                            .decay = 0.1^(seq(0.01, 0.08, 0.01))*0.11)
+    
+    ctrl2 = caret::trainControl(method = control, number = number, 
+                                repeats = repeats, classProbs = classProbs,
+                               # sampling = subsampling,
+                                summaryFunction = summary)
+    
+    train.mod = caret::train(trainx, trainy, method, 
+                             tuneGrid = tuneGrid, tuneLength = length, 
+                             trControl = ctrl2, trace = FALSE)
+    print(train.mod)
+  }
+  else {
+    tune.mod = caret::train(trainx, trainy, method = method,
+                            tuneLength = length, trControl = ctrl)
+    print(tune.mod)
+    
+    if (method == "knn") {
+      k <- tune.mod[["bestTune"]][["k"]]
+      
+      if (k - 2 <= 0) {
+        seqStart <- k
+      }
+      else {
+        seqStart <- k - 2
+      }
+      seqStop <- k + 2
+      seqInt <- 1
+      tuneGrid <- expand.grid(.k = seq(seqStart, seqStop, by=seqInt))
     }
+    else if (method == "rf") {
+      mtry <- tune.mod[["bestTune"]][["mtry"]]
+      
+      if (mtry - 2 <= 0) {
+        seqStart <- mtry
+      }
+      else {
+        seqStart <- mtry - 2
+      }
+      
+      seqStop <- mtry + 2
+      seqInt <- 1
+      tuneGrid <- expand.grid(.mtry = seq(seqStart, seqStop, by=seqInt))
+    }
+    else if (method == "svmLinear2") {
+      cost <- tune.mod[["bestTune"]][["cost"]]
+      
+      if (cost - 0.25 <= 0 || cost - 0.5 <= 0 || cost - 0.75 <= 0 || cost - 1 <= 0) {
+        seqStart <- cost
+      }
+      else {
+        seqStart <- cost - 1
+      }
+      seqStop <- cost + 1
+      seqInt <- 0.25
+      tuneGrid <- expand.grid(.cost = seq(seqStart, seqStop, by=seqInt))
+    }
+    
+    ctrl2 = caret::trainControl(method = control, number = number, 
+                                repeats = repeats, classProbs = classProbs, 
+                               # sampling = subsampling,
+                                summaryFunction = summary)
+    
+    train.mod = caret::train(trainx, trainy, method, 
+                             tuneGrid = tuneGrid, tuneLength = length,
+                             trControl = ctrl2)
+    print(train.mod)
+  }
+  
+  # Close parallel backend if it was opened
+  if (parallelComputing) {
+    stopCluster(cls)
+  } 
+  
+  
+  ## For binary classification
+  if (is.factor(data[[y]]) && length(unique(data[[y]])) == 2) {
+    
+    if(unique(data[[y]]) %in% 1:9) {
+      
+      ## Adjust target values type
+      testy <- factor(paste0("Cl", testy))
+    }
+    
+    # Predict probabilities
+    prob.mod <- as.data.frame(caret::predict.train(train.mod, testx, type = "prob"))
+    
+    # Generate histogram for class probabilities
+    prob.newdf <- utils::stack(prob.mod)
+    colnames(prob.newdf) <- c("Probability", "Class")
+    prob.hist <- ggplot(prob.newdf, aes(x = Probability, group=Class, colour = Class, fill = Class)) +
+      geom_histogram(alpha = 0.4, position = "identity", binwidth = 0.1) + 
+      theme_bw() + 
+      scale_colour_brewer(palette = "Dark2") + 
+      scale_fill_brewer(palette = "Dark2") + 
+      facet_wrap(~Class) +
+      labs(y = "Count")
+
+    # Model Evaluation
+    predictions <- predict(train.mod, newdata = testx)
+    confMatrix <- caret::confusionMatrix(predictions, testy) 
+    
+    # Calculate ROC curve and AUC
+    roc_curve <- roc(response = testy, predictor = prob.mod[,2])
+    auc_value <- auc(roc_curve)
+    
+    # Plot ROC curve
+    roc_plot <- ggroc(roc_curve)
+    roc_plot <- roc_plot + ggtitle(sprintf("ROC Curve (AUC = %.2f)", auc_value))
+    
+    
+    # Return results
+    results = list(
+      Tuning = tune.mod, 
+      Model = train.mod, 
+      `Model quality` = confMatrix,
+      Variableimportance =NULL ,
+      ROC_Plot = roc_plot,
+      `Class Probabilities` = prob.mod, 
+      `Class Probabilities Plot` = prob.hist,
+      `Training Data` = data.train, 
+      `Test Data` = data.test
+    )
+    return(results)
+  }
+  
+  ## For regression  
+  else if(is.numeric(data[[y]])) {
+    
+    # Assuming 'train.mod' is your trained model and it has been correctly trained
+    pred.mod = caret::predict.train(train.mod, newdata = testx)
+    # Calculate residuals against the test set
+    resids = testy - pred.mod
+    
+    # Prepare residuals for plotting
+    respred.df = data.frame(Residuals = resids, Predicted = pred.mod)
+    
+    # Prepare predictions for plotting
+    actual.vs.predicted.df = data.frame(Actual = testy, Predicted = pred.mod)
+    
+    ## Model Quality metrics
+    Quality_metrics <- postResample(pred = actual.vs.predicted.df$Predicted,
+                                    obs = actual.vs.predicted.df$Actual)
+    
+    # Residulas plots
+    respred.plot = ggplot2::ggplot(respred.df, ggplot2::aes(x = Predicted, y = Residuals)) +
+      ggplot2::geom_point() +  
+      ggplot2::theme_bw() +
+      ggplot2::labs(x = "Predicted", y = "Residuals")
+    
+    # Plotting Predicted vs Actual values
+    actual.vs.predicted.plot = ggplot2::ggplot(actual.vs.predicted.df, ggplot2::aes(x = Actual, y = Predicted)) +
+      ggplot2::geom_point() +
+      ggplot2::geom_smooth(method = "loess")+
+      ggplot2::theme_bw() +
+      ggplot2::labs(x = "Actual", y = "Predicted", title = "Predicted vs Actual Values")
+    
+    # Get Variable importance
+    VarImportance <- plot(varImp(train.mod))
+    
+    # Gather results
+    results = list(Tuning = tune.mod, 
+                   Model = train.mod, 
+                   Predictions = pred.mod, 
+                   `Residuals Vs. Predicted Plot` = respred.plot, 
+                   `Predicted vs Actual Plot` = actual.vs.predicted.plot,
+                   Quality_metrics = Quality_metrics,
+                   VariableImportance = VarImportance,
+                   `Training Data` = data.train, 
+                   `Test Data` = data.test)
+    return(results)
+  }
 }
