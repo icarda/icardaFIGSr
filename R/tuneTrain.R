@@ -27,46 +27,48 @@
 #' \code{tuneTrain} relies on packages \code{caret}, \code{ggplot2} and \code{plotROC} to perform the modelling and plotting.
 #' @details Types of classification and regression models available for use with \code{tuneTrain} can be found using \code{names(getModelInfo())}. The results given depend on the type of model used.
 #'
-#' For classification models, class probabilities and ROC curve are given in the results. For regression models, predictions and residuals versus predicted plot are given. \code{y} should be converted to either factor if performing classification or numeric if performing regression before specifying it in \code{tuneTrain}.
+#' In addition to Model object, Model quality, Tuning and training datasets,For classification models, class probabilities and ROC curve are given in the results. For regression models, Variable importance, predictions and residuals versus predicted plot are given. \code{y} should be converted to either factor if performing classification or numeric if performing regression before specifying it in \code{tuneTrain}.
 #'
 #' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
 #' @examples
 #' \dontrun{
-#' if(interactive()){
-#' ## Reading local test datasets 
+#' #' if(interactive()){
+#' ## Reading local test datasets
 #' load(paste(getwd(),"/","icardaFIGSr/DurumWheatDHEWC.rda", sep = ""))
 #' load(paste(getwd(),"/","icardaFIGSr/BarleyRNOWC.rda", sep = ""))
 #' data(septoriaDurumWC)
 #' 
-#' ## Binary classification of ST_S
-#' knn.ST_S <- tuneTrain(data = septoriaDurumWC,
-#'                       y =  'ST_S',
-#'                       method = 'knn', 
-#'                       summary = multiClassSummary, 
-#'                       classProbs = TRUE)
+#' ## Binary classification for balanced data
+#' rf.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
+#'                      y =  'ST_S',
+#'                      method = 'rf',
+#'                      summary = multiClassSummary,
+#'                      repeats = 3,
+#'                      classProbs = TRUE)
 #' 
+#' ## Binary classification of RNO with imbalanced data
 #' 
-#' ## Binary classification of RNO with imbalanced data  
+#' ### Set Outcome variable as factor
+#' BarleyRNOWC$RNO <- as.factor(paste("Cl",BarleyRNOWC$RNO, sep = "_"))
+#' 
 #' knn.RNO <- tuneTrain(data = BarleyRNOWC,
 #'                      y =  'RNO',
-#'                      method = 'knn', 
+#'                      method = 'knn',
 #'                      summary = multiClassSummary,
 #'                      imbalanceMethod ="over",
 #'                      imbalanceThreshold = 0.5,
-#'                      classProbs = TRUE, 
+#'                      classProbs = TRUE,
 #'                      repeats = 3)
-#' 
 #' 
 #' ## Regression of DHE
 #' svm.DHE <- tuneTrain(data = DurumWheatDHEWC,
 #'                      y =  'DHE',
-#'                      method = 'svmLinear2', 
-#'                      summary = defaultSummary, 
-#'                      classProbs = FALSE, 
+#'                      method = 'svmLinear2',
+#'                      summary = defaultSummary,
+#'                      classProbs = FALSE,
 #'                      repeats = 3)
 #' 
-#' #'  }
-#' #' }
+#'  }
 #' @seealso
 #'  \code{\link[caret]{createDataPartition}},
 #'  \code{\link[caret]{trainControl}},
@@ -119,7 +121,7 @@ tuneTrain <- function(data, y, p = 0.7,
   }
   
   # Handle data imbalance
-  handleImbalance <- function(data, y, method = "over", threshold = 0.5) {
+  handleImbalance <- function(data, y, method = imbalanceMethod, threshold = imbalanceThreshold) {
     proportions <- table(data[[y]]) / nrow(data)
     minProportion <- min(proportions)
     
@@ -129,13 +131,15 @@ tuneTrain <- function(data, y, p = 0.7,
       } else if (method == "under") {
         data <- underSample(data, y)
       } else {
-        warning("Invalid sampling method specified. Returning original data.")
+        warning("No Subsampling method specified. Returning original data.")
       }
     } else {
       message("Data is balanced above the specified threshold. No sampling applied.")
     }
+    if(imbalanceMethod %in% c("over", "under")) {
+      message("Data was successfully balanced.")
+    }
     
-    message("Data was successfully balanced.")
     return(data)
   }
   
@@ -182,9 +186,16 @@ tuneTrain <- function(data, y, p = 0.7,
   if (parallelComputing) {
     cores <- detectCores()
     # Adjusting cores to reserve at least 1 for the system if all cores are utilized
-    cls <- makeCluster(max(1, cores - 4)) # Ensure at least 1 core remains for the system
+    cls <- makeCluster(max(1, cores - 1)) # keep one core free
     registerDoParallel(cls)
   }
+  
+  on.exit({
+    if (exists("cls")) {
+      stopCluster(cls)
+    }
+  }, add = TRUE)
+  
   
   ctrl = caret::trainControl(method = control, number = number, 
                              repeats = repeats,
@@ -196,6 +207,7 @@ tuneTrain <- function(data, y, p = 0.7,
     tune.mod = caret::train(trainx, trainy, method = method, 
                             tuneLength = length, trControl = ctrl)
     train.mod <- tune.mod
+    print(train.mod)
   }
   
   else if (method == "nnet") {
@@ -214,7 +226,7 @@ tuneTrain <- function(data, y, p = 0.7,
     seqStop <- size + 1
     seqInt <- 1
     tuneGrid <- expand.grid(.size = seq(seqStart, seqStop, by=seqInt), 
-                            .decay = 0.1^(seq(0.01, 0.08, 0.01))*0.11)
+                            .decay = 0.1^(seq(0.01, 0.09, 0.01))*0.11)
     
     ctrl2 = caret::trainControl(method = control, number = number, 
                                 repeats = repeats, classProbs = classProbs,
@@ -270,7 +282,8 @@ tuneTrain <- function(data, y, p = 0.7,
       seqStop <- cost + 1
       seqInt <- 0.25
       tuneGrid <- expand.grid(.cost = seq(seqStart, seqStop, by=seqInt))
-    }
+      
+    } 
     
     ctrl2 = caret::trainControl(method = control, number = number, 
                                 repeats = repeats, classProbs = classProbs, 
@@ -283,21 +296,17 @@ tuneTrain <- function(data, y, p = 0.7,
     print(train.mod)
   }
   
-  # Close parallel backend if it was opened
-  if (parallelComputing) {
-    stopCluster(cls)
-  } 
-  
   
   ## For binary classification
   if (is.factor(data[[y]]) && length(unique(data[[y]])) == 2) {
     
-    if(unique(data[[y]]) %in% 1:9) {
-      
-      ## Adjust target values type
-      testy <- factor(paste0("Cl", testy))
-    }
-    
+    # if(unique(data[[y]]) %in% 1:9) {
+    # 
+    #   ## Adjust target values type
+    #   data.train[[y]] <- as.factor(paste("Cl", data.train[[y]], sep = "_"))
+    #   data.test[[y]] <- as.factor(paste("Cl", data.test[[y]], sep = "_"))
+    # }
+
     # Predict probabilities
     prob.mod <- as.data.frame(caret::predict.train(train.mod, testx, type = "prob"))
     
@@ -343,7 +352,6 @@ tuneTrain <- function(data, y, p = 0.7,
   ## For regression  
   else if(is.numeric(data[[y]])) {
     
-    # Assuming 'train.mod' is your trained model and it has been correctly trained
     pred.mod = caret::predict.train(train.mod, newdata = testx)
     # Calculate residuals against the test set
     resids = testy - pred.mod
