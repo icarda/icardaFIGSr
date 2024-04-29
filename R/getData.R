@@ -87,7 +87,7 @@
 #' @export
 #' @importFrom httr handle POST content
 
-getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = FALSE, collectionYear = FALSE,  coor = FALSE, available = FALSE) {
+getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = FALSE, collectionYear = FALSE,  coor = FALSE, available = FALSE, other_id = FALSE) {
   
   query = ""
   if(!missing(crop)) {
@@ -138,6 +138,7 @@ getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = F
       ,taxon = taxon
       ,col_year = collectionYear
       ,available = available
+      ,other_id = other_id
     )
     
     response <- httr::POST(handle = handle, body = body)
