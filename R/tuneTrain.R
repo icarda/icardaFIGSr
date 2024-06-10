@@ -70,18 +70,21 @@
 #' 
 #' ## Multiclass classification of DHE Classes with imbalanced data
 #' 
-#' # Create DHE Classes from DurumWheatDHEWC dataset
-#  DurumWheatDHEWC$DHE <- ifelse(DurumWheatDHEWC$DHE <=172, "1", 
-#                               ifelse(DurumWheatDHEWC$DHE <= 180, "2", 
-#                                      3))
-#' # Run Classification
-#' knn.DHE.Classes <- tuneTrain(data = DurumWheatDHEWC,
+#' Create DHE Classes from DurumWheatDHEWC dataset
+#' 
+#' DurumWheatDHEWC$DHE <- ifelse(DurumWheatDHEWC$DHE <=172, "1", 
+#'                                ifelse(DurumWheatDHEWC$DHE <= 180, "2", 
+#'                                       3))
+#'                                        
+#' DurumWheatDHEWC$DHE <- factor(DurumWheatDHEWC$DHE)
+#'
+#' Run Classification
+#' rf.DHE.Classes <- tuneTrain(data = DurumWheatDHEWC,
 #'                              y =  'DHE',
-#'                              method = 'knn',
+#'                              method = 'rf',
 #'                              summary = multiClassSummary,
 #'                              imbalanceMethod ="up",
 #'                              imbalanceThreshold = 0.2,
-#'                              process = c("scale","center"),
 #'                              classProbs = TRUE,
 #'                              repeats = 3)
 #' 
@@ -114,7 +117,7 @@ tuneTrain <- function(data, y, p = 0.7,
                       control = "repeatedcv",
                       Length =10,
                       number = 10, repeats = 10,
-                      process = c('center', 'scale', "knnImpute"),
+                      process = c('center', 'scale'),
                       summary = multiClassSummary,
                       classProbs = FALSE, ...) {
   
@@ -139,11 +142,6 @@ tuneTrain <- function(data, y, p = 0.7,
   trainIndex <- caret::createDataPartition(y = yvec, p = p, list = FALSE)
   data.train <- data[trainIndex, ]
   data.test <- data[-trainIndex, ]
-  
-  # Preprocess: Impute missing values and apply scaling
-  preProcValues <- caret::preProcess(data.train, method = process)
-  data.train <- predict(preProcValues, data.train)
-  data.test <- predict(preProcValues, data.test)
   
   # Class probability conversion if required
   if (classProbs && all(unique(data.train[[y]]) %in% 1:9)) {
@@ -193,14 +191,16 @@ tuneTrain <- function(data, y, p = 0.7,
   
   if (method == "treebag") {
     tune.mod = caret::train(trainx, trainy, method = method, 
-                            tuneLength = Length, trControl = ctrl)
+                            tuneLength = Length, trControl = ctrl, 
+                            preProcess=process)
     train.mod <- tune.mod
     print(train.mod)
   }
   
   else if (method == "nnet") {
     tune.mod = caret::train(trainx, trainy, method = method, 
-                            tuneLength = Length, trControl = ctrl, trace = FALSE)
+                            tuneLength = Length, trControl = ctrl, trace = FALSE, 
+                            preProcess=process)
     print(tune.mod)
     size <- tune.mod[["bestTune"]][["size"]]
     
@@ -223,12 +223,14 @@ tuneTrain <- function(data, y, p = 0.7,
     
     train.mod = caret::train(trainx, trainy, method, 
                              tuneGrid = tuneGrid, tuneLength = Length, 
+                             preProcess=process,
                              trControl = ctrl2, trace = FALSE)
     print(train.mod)
   }
   else {
     tune.mod = caret::train(trainx, trainy, method = method,
-                            tuneLength = Length, trControl = ctrl)
+                            tuneLength = Length, preProcess=process,
+                            trControl = ctrl)
     print(tune.mod)
     
     if (method == "knn") {
@@ -280,6 +282,7 @@ tuneTrain <- function(data, y, p = 0.7,
     
     train.mod = caret::train(trainx, trainy, method, 
                              tuneGrid = tuneGrid, tuneLength = Length,
+                             preProcess=process,
                              trControl = ctrl2)
     print(train.mod)
   }
@@ -320,7 +323,7 @@ tuneTrain <- function(data, y, p = 0.7,
       Tuning = tune.mod, 
       Model = train.mod, 
       `Model quality` = confMatrix,
-      Variableimportance =NULL ,
+      Variableimportance =plot(varImp(train.mod)),
       ROC_Plot = roc_plot,
       `Class Probabilities` = prob.mod, 
       `Class Probabilities Plot` = prob.hist,
@@ -367,6 +370,10 @@ tuneTrain <- function(data, y, p = 0.7,
     
     # Return a list of all evaluation results
     results = list(
+      Tuning = tune.mod, 
+      Model = train.mod, 
+      `Model quality` = confMatrix,
+      Variableimportance =plot(varImp(train.mod)),
       ROC_Results = roc_results,
       ROC_Plots = roc_plots,
       Probabilities_Plot = prob.hist,
@@ -423,4 +430,3 @@ tuneTrain <- function(data, y, p = 0.7,
     return(results)
   }
 }
-
