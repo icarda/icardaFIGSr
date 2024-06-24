@@ -1,6 +1,5 @@
-
-#' @title Splitting the Data, Tuning and Training the Data, and Making Predictions
-#' @description Automatic function for tuning and training data, it returns a list containing a model object, data frame and plot.
+#' @title Splitting the Data, Tuning and Training the models, and making predictions
+#' @description Automatic function for tuning and training data, it returns a list containing a model objects, data frame and plot.
 #' @param data object of class "data.frame" with target variable and predictor variables.
 #' @param y character. Target variable.
 #' @param p numeric. Proportion of data to be used for training. Default: 0.7
@@ -74,7 +73,7 @@
 #' 
 #' DurumWheatDHEWC$DHE <- ifelse(DurumWheatDHEWC$DHE <=172, "1", 
 #'                                ifelse(DurumWheatDHEWC$DHE <= 180, "2", 
-#'                                       3))
+#'                                       "3"))
 #'                                        
 #' DurumWheatDHEWC$DHE <- factor(DurumWheatDHEWC$DHE)
 #'
@@ -218,7 +217,7 @@ tuneTrain <- function(data, y, p = 0.7,
     
     ctrl2 = caret::trainControl(method = control, number = number, 
                                 repeats = repeats, classProbs = classProbs,
-                               sampling = subsampling,
+                                sampling = subsampling,
                                 summaryFunction = summary)
     
     train.mod = caret::train(trainx, trainy, method, 
@@ -277,7 +276,7 @@ tuneTrain <- function(data, y, p = 0.7,
     
     ctrl2 = caret::trainControl(method = control, number = number, 
                                 repeats = repeats, classProbs = classProbs, 
-                               sampling = subsampling,
+                                sampling = subsampling,
                                 summaryFunction = summary)
     
     train.mod = caret::train(trainx, trainy, method, 
@@ -290,7 +289,7 @@ tuneTrain <- function(data, y, p = 0.7,
   
   ## For binary classification
   if (is.factor(data[[y]]) && length(unique(data[[y]])) == 2) {
-
+    
     # Predict probabilities
     prob.mod <- as.data.frame(caret::predict.train(train.mod, testx, type = "prob"))
     
@@ -304,7 +303,7 @@ tuneTrain <- function(data, y, p = 0.7,
       scale_fill_brewer(palette = "Dark2") + 
       facet_wrap(~Class) +
       labs(y = "Count")
-
+    
     # Model Evaluation
     predictions <- predict(train.mod, newdata = testx)
     confMatrix <- caret::confusionMatrix(predictions, testy) 
@@ -361,23 +360,39 @@ tuneTrain <- function(data, y, p = 0.7,
     predictions <- predict(train.mod, newdata = testx)
     confMatrix <- confusionMatrix(predictions, testy)
     
-    # ROC plots and AUC values for each class
-    roc_plots <- lapply(roc_results$rocs, function(roc_obj) {
-      ggroc(roc_obj) + ggtitle(sprintf("ROC Curve (AUC = %.2f)", roc_obj$auc))+
+    # Extract class names from roc_results
+    class_names <- names(roc_results$rocs)
+    
+    # ROC plots and AUC values for each combination of classes
+    roc_plots <- list()
+    for (i in seq_along(roc_results$rocs)) {
+      roc_obj <- roc_results$rocs[[i]]
+      
+      # Extract class names from the names of roc_results$rocs
+      class_pair <- strsplit(names(roc_results$rocs)[i], "/")[[1]]
+      class1 <- class_pair[1]
+      class2 <- class_pair[2]
+      
+      # Compute AUC manually
+      auc <- auc(roc_obj[[1]])
+      
+      plot_title <- sprintf("ROC Curve: %s vs %s (AUC = %.2f)", class1, class2, auc)
+      
+      roc_plots[[i]] <- ggroc(roc_obj[[1]]) + 
+        ggtitle(plot_title) +
         theme_minimal() + 
-        labs(color = "Class", fill = "Class")
-    })
+        theme(plot.title = element_text(size = 10, face = "bold"))
+    }
     
     # Return a list of all evaluation results
     results = list(
       Tuning = tune.mod, 
       Model = train.mod, 
       `Model quality` = confMatrix,
-      Variableimportance =plot(varImp(train.mod)),
+      Variableimportance = plot(varImp(train.mod)),
       ROC_Results = roc_results,
       ROC_Plots = roc_plots,
       Probabilities_Plot = prob.hist,
-      Model_Quality = confMatrix,
       Predictions = predictions
     )
     
@@ -408,7 +423,7 @@ tuneTrain <- function(data, y, p = 0.7,
       ggplot2::labs(x = "Predicted", y = "Residuals")
     
     # Plotting Predicted vs Actual values
-   actual.vs.predicted.plot = ggplot2::ggplot(actual.vs.predicted.df, ggplot2::aes(x = Actual, y = Predicted)) +
+    actual.vs.predicted.plot = ggplot2::ggplot(actual.vs.predicted.df, ggplot2::aes(x = Actual, y = Predicted)) +
       ggplot2::geom_point() +
       ggplot2::geom_smooth(method = "loess")+
       ggplot2::theme_bw() +
