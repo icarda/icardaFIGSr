@@ -28,46 +28,46 @@ this function Extracts Daily values of climatic variables from remote ICARDA dat
 \details{
 Similar to \code{\link[icardaFIGSr]{getDaily}} except the extracted data is based on 365 days starting from the onset of planting.
 Crops available in ICARDA's genebank documentation system include the following:
-\itemize{
-  \item{'ICAG' = Aegilops}
-  \item{'ICB' = Barley}
-  \item{'ICBW' = Bread wheat}
-  \item{'ILC' = Chickpea}
-  \item{'ICDW' = Durum wheat}
-  \item{'ILB' = Faba bean}
-  \item{'BPL' = Faba bean BPL}
-  \item{'IFMI' = Forage and range}
-  \item{'IFLA' = Lathyrus}
-  \item{'ILL' = Lentil}
-  \item{'IFMA' = Medicago annual}
-  \item{'IC' = Not mandate cereals}
-  \item{'IFPI' = Pisum}
-  \item{'ICPW' = Primitive wheat}
-  \item{'IFTR' = Trifolium}
-  \item{'IFVI' = Vicia}
-  \item{'ICWH' = Wheat hybrids}
-  \item{'ICWW' = Wheat wild relatives}
-  \item{'ILWC' = Wild Cicer}
-  \item{'ICWB' = Wild Hordeum}
-  \item{'ILWL' = Wild Lens}
-  \item{'ICWT' = Wild Triticum}
- }
+\describe{
+\item{'ICAG'}{Aegilops}
+\item{'ICB'}{Barley}
+\item{'ICBW'}{Bread wheat}
+\item{'ILC'}{Chickpea}
+\item{'ICDW'}{Durum wheat}
+\item{'ILB'}{Faba bean}
+\item{'BPL'}{Faba bean BPL}
+\item{'IFMI'}{Forage and range}
+\item{'IFLA'}{Lathyrus}
+\item{'ILL'}{Lentil}
+\item{'IFMA'}{Medicago annual}
+\item{'IC'}{Not mandate cereals}
+\item{'IFPI'}{Pisum}
+\item{'ICPW'}{Primitive wheat}
+\item{'IFTR'}{Trifolium}
+\item{'IFVI'}{Vicia}
+\item{'ICWH'}{Wheat hybrids}
+\item{'ICWW'}{Wheat wild relatives}
+\item{'ILWC'}{Wild Cicer}
+\item{'ICWB'}{Wild Hordeum}
+\item{'ILWL'}{Wild Lens}
+\item{'ICWT'}{Wild Triticum}
+}
 
- Alternatively, the list of available crops can be fetched from ICARDA's online server using \code{\link[icardaFIGSr]{getCrops}}.
+Alternatively, the list of available crops can be fetched from ICARDA's online server using \code{\link[icardaFIGSr]{getCrops}}.
 }
 \examples{
-if(interactive()){
+\dontrun{
  # Extract onset data for durum wheat
- durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
- onset <- getOnset(sites = levels(as.factor(durum$SiteCode)), crop = 'ICDW',
-                   var = c('tavg', 'prec', 'rh'), cv = TRUE)
+ durum <- getAccessions(crop = 'Durum wheat', coor = FALSE)
+ onset <- getOnset(sites = unique(durum$SiteCode), crop = 'ICDW',
+                   var = c('tavg', 'prec'), cv = TRUE)
 
  # Get data frame with climatic variables from list object returned
  onset.clim <- onset[[1]]
 
  # Get data frame with coefficient of variation from list object
  # returned (when cv = TRUE)
- onset.cv <- onset[[2]]
+ onset.cv <- onset[[2]] 
 
  # Get data frame with phenotypic variables from list object returned
  onset.pheno <- onset[[3]]
@@ -75,7 +75,7 @@ if(interactive()){
 }
 \seealso{
 \code{\link[reshape2]{dcast}},
- \code{\link[icardaFIGSr]{getCrops}}
+\code{\link[icardaFIGSr]{getCrops}}
 }
 \author{
 Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Bancy Ngatia

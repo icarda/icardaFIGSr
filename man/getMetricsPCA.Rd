@@ -25,7 +25,7 @@ getMetricsPCA allows to obtain performance measures from Confusion Matrix for al
 Works with target variables that have two, three, four, six or eight classes. Similar to \code{\link[icardaFIGSr]{getMetrics}} but used in the case where models have been run with PCA specified as an option for the \code{preProcess} argument in the \code{train} function of \code{caret}.
 }
 \examples{
-if(interactive()){
+\dontrun{
  # Obtain predictions from several previously run models
  dataX <- subset(data, select = -y)
  pred.knn <- predict(model.knn, newdata = dataX)
@@ -47,7 +47,7 @@ if(interactive()){
 }
 \seealso{
 \code{\link[caret]{confusionMatrix}},
- \code{\link[caret]{predict.train}}
+\code{\link[caret]{predict.train}}
 }
 \author{
 Khadija Aziz, Zainab Azough, Zakaria Kehel, Bancy Ngatia

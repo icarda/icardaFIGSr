@@ -16,7 +16,7 @@ this function allows to obtain a list of crops available in ICARDA's Genebank Do
 The crop codes and names are fetched from ICARDA's online server.
 }
 \examples{
-if(interactive()){
+\dontrun{
  # Get list of available crops
  crops <- getCrops()
  }

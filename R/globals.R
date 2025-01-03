@@ -4,4 +4,5 @@ utils::globalVariables(c("climate.df", "cumgdd", "Probability", "Predicted",
                          "resids", "respred.plot", "svalue", ".credentials",
                          "Class", "ICBW_Onset_Phen", "ICB_Onset_Phen", "ICDW_Onset_Phen",
                          "IFPI_Onset_Phen", "ILB_Onset_Phen", "ILC_Onset_Phen", "ILL_Onset_Phen",
+                         "value", "onset", "Cycle", "DAP", "tmin", "tmax","Variable", "Importance",
                          "visible","visible<-"))

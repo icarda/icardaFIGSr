@@ -22,24 +22,24 @@ An object of class "data.frame" with specified climatic variables for coordinate
 }
 \description{
 extractWCdata returns a data frame based on specified climatic variables.
-This function modifies the \href{https://github.com/rspatial/raster/blob/master/R/getData.R}{getData function from raster R package}, to extract world climate data of version 2.1 instead of version 1.4.
+This function modifies the \href{https://github.com/rspatial/raster/blob/master/R/getData.R}{getData function from the raster R package} to extract world climate data of version 2.1 instead of version 1.4.
 }
 \details{
 A grid can be created with any particular coordinates and used as input for \code{sites} (see section 'Examples'). \code{extractWCdata} will use the given coordinates to extract data from the WorldClim 2.1 database.
 The extracted data will most likely contain NAs for sites where climate data is not available. These should be removed or imputed before using the data to make predictions.
 }
 \examples{
-if(interactive()){
+\dontrun{
  # Create grid
- sp1 <- seq(-16, 115, length = 10)
- sp2 <- seq(25, 59, length = 10)
+ sp1 <- seq(-16, 115, length = 3)
+ sp2 <- seq(25, 59, length = 3)
  sp <- expand.grid(x = sp1, y = sp2)
 
  # Extract data using grid
- sp.df0 <- extractWCdata(sp, long = 'x', lat = 'y', var = 'tavg')
+ sp.df0 <- extractWCdata(sp, long = 'long', lat = 'lat', var = 'bio')
  sp.df <- na.omit(sp.df0)
  }
 }
 \author{
-Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal
+Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal,
 }

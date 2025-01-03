@@ -13,15 +13,15 @@
 #' Crops for which GDD calculations are available include: 'Durum wheat', 'Bread wheat', 'Barley', 'Chickpea', 'Lentil'. Each of these can be supplied as options for the argument \code{crop}.
 #' Cumulative GDD values determine the length of different growing stages. Growing stages vary depending on the type of crop. Durum wheat, bread wheat and barley have five growth stages, i.e. beginning of heading, beginning and completion of flowering, and beginning and completion of grain filling. Chickpea and lentil have four growth stages, i.e. beginning of flowering, completion of 50% flowering, beginning of seed filling, and completion of 90% maturity (chickpea) or of full maturity (lentil).
 #' The length of the full growth cycle of the crop for each site is also given in the output data frame.
-#' @author Khadija Aouzal, Zakaria Kehel, Bancy Ngatia
+#' @author Khadija Aouzal, Zakaria Kehel, Bancy Ngatia, Chafik Analy
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  # Calculate GDD for durum wheat 
 #'  data(durumDaily)
 #'  
 #'  durumDailysubset 
 #'  
-#'  growth <- getGrowthPeriod(sitecode = unique(durumDaily$site_code)[1:3],
+#'  growth <- getGrowthPeriod(sitecode = levels(as.factor(durumDaily$site_code))[1:3],
 #'                            crop = 'Durum wheat', base = 0,
 #'                            max = 35, gdd = TRUE)
 #'
@@ -38,290 +38,141 @@
 #'  growth.gdd <- growth[[3]]
 #'  }
 #'  
-#' @rdname getGrowthPeriod
-#' @importFrom dplyr group_by slice
-#' @importFrom magrittr "%>%"
+#' @name getGrowthPeriod
+#' @importFrom stats setNames
+#' @importFrom tidyr fill
+#' @importFrom dplyr select mutate filter group_by slice arrange left_join row_number glimpse across
 #' @importFrom plyr ddply join
 #' @importFrom reshape2 melt
 #' @export
 
 
 getGrowthPeriod <- function(sitecode, crop, base, max, gdd = FALSE) {
+  options(timeout = max(600, getOption("timeout")))
   
-  # Map full crop names to crop codes
-  if(crop == "Durum wheat") onsetcrop = "ICDW"
-  else if(crop == "Bread wheat") onsetcrop = "ICBW"
-  else if(crop == "Barley") onsetcrop = "ICB"
-  else if(crop == "Chickpea") onsetcrop = "ILC"
-  else if(crop == "Lentil") onsetcrop = "ILL"
-  
-  # Fetch the onset data based on the site and crop code
-  onsetdata = getOnset(sites = levels(as.factor(sitecode)), var = c('tmin', 'tmax'), 
-                       crop = onsetcrop)
-  
-  # Separate temperature and phenological data
-  tempdata = onsetdata[[1]]
-  phenodata = onsetdata[[2]]
-  
-  # Rename columns for consistency
-  names(tempdata)[names(tempdata) == grep("site", colnames(tempdata), value = TRUE)] <- "sitecode"
-  
-  # More column renaming
-  names(phenodata)[names(phenodata) == grep("site", colnames(phenodata), value = TRUE)] <- "sitecode"
-  names(phenodata)[names(phenodata) == grep("onset", colnames(phenodata), value = TRUE)] <- "onset"
-  
-  # Identify temperature columns in the data
-  tminvars = grep("tmin", colnames(tempdata), perl = TRUE, value = TRUE)
-  tmaxvars = grep("tmax", colnames(tempdata), perl = TRUE, value = TRUE)
-  
-  # Reshape the temperature data for further processing
-  data2 = reshape2::melt(tempdata, id = "sitecode")
-  data2 = data2[order(data2[ , "sitecode"]), ]
-  
-  # Replace temperatures below the base with the base value
-  data2[3] = lapply(data2[3], function(x) replace(x, x < base, base))
-  
-  # Calculate growing degree days (GDD)
-  gddtmin = data2[data2$variable %in% tminvars, "value"]
-  gddtmax = data2[data2$variable %in% tmaxvars, "value"]
-  gddvar = (gddtmin + gddtmax) / 2
-  
-  # Create a new data frame 'data4' containing 'sitecode', 'tmin', 'tmax', and 'gdd' based on conditions in 'data2' and other variables
-  data4 = data.frame(sitecode = data2[data2$variable %in% tminvars, "sitecode"], tmin = gddtmin, tmax = gddtmax, gdd = gddvar)
-  
-  # Group 'data4' by 'sitecode' and calculate the cumulative sum of 'gdd' for each group, storing it in 'cumgdd'
-  data4 = plyr::ddply(data4, plyr::.(sitecode), transform, cumgdd = cumsum(gdd))
-  
-  # Add a new column 'DAP' (Days After Planting) to 'data4', filled with a sequence from 1 to 365
-  data4 = plyr::ddply(data4, plyr::.(sitecode), transform, DAP = seq(1, 365, 1))
-  
-  # Join 'data4' with 'phenodata' on 'sitecode' and 'onset', and suppress warning messages
-  data5 = suppressMessages(plyr::join(data4, phenodata[ , c("sitecode", "onset")]))
-  
-  # Conditional logic for handling 'Durum wheat' and 'Bread wheat' crops
-  if(crop %in% c("Durum wheat", "Bread wheat")) {
-    
-    # Modify 'tmax' values based on the conditions involving 'cumgdd'
-    data5 = within(data5, tmax[tmax > 21 & cumgdd <= 395] <- 21)
-    data5 = within(data5, tmax[tmax > max & cumgdd > 395] <- max)
-    
-    # For each of the growth stages ('HB', 'FB', etc.), find the row with the nearest 'cumgdd' to specific values
-    # Calculate new dates for each growth stage, accounting for possible year rollover
-    
-    # Heading and Booting stage (HB)
-    HB.df = data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1567)))
-    HB.df$HB = ifelse((HB.df$DAP + HB.df$onset) > 365, (HB.df$DAP + HB.df$onset) - 365, HB.df$DAP + HB.df$onset)
-    
-    # Subset columns for HB stage
-    HB.df2 <- HB.df[ , c("sitecode", "onset", "HB")]
-    
-    # Flowering and Booting stage (FB)
-    FB.df = data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1739)))
-    FB.df$FB = ifelse((FB.df$DAP + FB.df$onset) > 365, (FB.df$DAP + FB.df$onset) - 365, FB.df$DAP + FB.df$onset)
-    
-    # Subset columns for FB stage
-    FB.df2 <- FB.df[ , c("sitecode", "onset", "FB")]
-    
-    # Fully Covered stage (FC)
-    FC.df = data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1768)))
-    FC.df$FC = ifelse((FC.df$DAP + FC.df$onset) > 365, (FC.df$DAP + FC.df$onset) - 365, FC.df$DAP + FC.df$onset)
-    
-    # Subset columns for FC stage
-    FC.df2 <- FC.df[ , c("sitecode", "onset", "FC")]
-    
-    # Growth From Booting (GFB) stage
-    GFB.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1825)))
-    GFB.df$GFB = ifelse((GFB.df$DAP + GFB.df$onset) > 365, (GFB.df$DAP + GFB.df$onset) - 365, GFB.df$DAP + GFB.df$onset)
-    
-    # Subset columns for GFB stage
-    GFB.df2 <- GFB.df[ , c("sitecode", "onset", "GFB")]
-    
-    # Growth Fully Complete (GFC) stage
-    GFC.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 2170)))
-    GFC.df$GFC = ifelse((GFC.df$DAP + GFC.df$onset) > 365, (GFC.df$DAP + GFC.df$onset) - 365, GFC.df$DAP + GFC.df$onset)
-    
-    # Subset columns for GFC stage
-    GFC.df2 <- GFC.df[ , c("sitecode", "onset", "GFC")]
-    
+  # Validate input
+  if (!is.character(crop) || !is.logical(gdd)) {
+    stop("Crop must be a character string and gdd should be TRUE or FALSE.")
   }
   
-  else if(crop == "Barley") {
-    
-    # Modify 'tmax' values based on the conditions involving 'cumgdd'
-    data5 = within(data5, tmax[tmax > 21 & cumgdd <= 395] <- 21)
-    data5 = within(data5, tmax[tmax > max & cumgdd > 395] <- max)
-    
-    # Heading and Booting stage (HB)
-    HB.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1357)))
-    HB.df$HB = ifelse((HB.df$DAP + HB.df$onset) > 365, (HB.df$DAP + HB.df$onset) - 365, HB.df$DAP + HB.df$onset)
-    
-    # Subset columns of HB
-    HB.df2 <- HB.df[ , c("sitecode", "onset", "HB")]
-    
-    # Flowering and Booting (FB)
-    FB.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1426)))
-    FB.df$FB = ifelse((FB.df$DAP + FB.df$onset) > 365, (FB.df$DAP + FB.df$onset) - 365, FB.df$DAP + FB.df$onset)
-    
-    # Subset columns of FB
-    FB.df2 <- FB.df[ , c("sitecode", "onset", "FB")]
-    
-    # Fully covered stage (FC) 
-    FC.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1496)))
-    FC.df$FC = ifelse((FC.df$DAP + FC.df$onset) > 365, (FC.df$DAP + FC.df$onset) - 365, FC.df$DAP + FC.df$onset)
-    
-    # Subset columns of FC
-    FC.df2 <- FC.df[ , c("sitecode", "onset", "FC")]
-    
-    # Growth From Booting (GFB)
-    GFB.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1635)))
-    GFB.df$GFB = ifelse((GFB.df$DAP + GFB.df$onset) > 365, (GFB.df$DAP + GFB.df$onset) - 365, GFB.df$DAP + GFB.df$onset)
-    
-    GFB.df2 <- GFB.df[ , c("sitecode", "onset", "GFB")]
-    
-    # Growth Fully complete (GFC)
-    GFC.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1960)))
-    GFC.df$GFC = ifelse((GFC.df$DAP + GFC.df$onset) > 365, (GFC.df$DAP + GFC.df$onset) - 365, GFC.df$DAP + GFC.df$onset)
-    
-    GFC.df2 <- GFC.df[ , c("sitecode", "onset", "GFC")]
-    
+  # Map crop names to codes
+  crop_codes <- c(
+    "Durum wheat" = "ICDW", "Bread wheat" = "ICBW", 
+    "Barley" = "ICB", "Chickpea" = "ILC", "Lentil" = "ILL"
+  )
+  onsetcrop <- crop_codes[crop]
+  
+  if (is.null(onsetcrop)) {
+    stop("Invalid crop name. Available crops are: ", paste(names(crop_codes), collapse = ", "))
   }
   
-  # Same logic apply to chickpea
-  
-  else if(crop == "Chickpea") {
-    
-    data5 = within(data5, tmax[tmax > max] <- max)
-    
-    FB.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 680)))
-    FB.df$FB = ifelse((FB.df$DAP + FB.df$onset) > 365, (FB.df$DAP + FB.df$onset) - 365, FB.df$DAP + FB.df$onset)
-    
-    FB.df2 <- FB.df[ , c("sitecode", "onset", "FB")]
-    
-    FC.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 870)))
-    FC.df$FC = ifelse((FC.df$DAP + FC.df$onset) > 365, (FC.df$DAP + FC.df$onset) - 365, FC.df$DAP + FC.df$onset)
-    
-    FC.df2 <- FC.df[ , c("sitecode", "onset", "FC")]
-    
-    GFB.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1075)))
-    GFB.df$GFB = ifelse((GFB.df$DAP + GFB.df$onset) > 365, (GFB.df$DAP + GFB.df$onset) - 365, GFB.df$DAP + GFB.df$onset)
-    
-    GFB.df2 <- GFB.df[ , c("sitecode", "onset", "GFB")]
-    
-    GFC.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1740)))
-    GFC.df$GFC = ifelse((GFC.df$DAP + GFC.df$onset) > 365, (GFC.df$DAP + GFC.df$onset) - 365, GFC.df$DAP + GFC.df$onset)
-    
-    GFC.df2 <- GFC.df[ , c("sitecode", "onset", "GFC")]
+  # Fetch onset data
+  onsetdata <- getOnset(sites = unique(sitecode), var = c('tmin', 'tmax'), crop = onsetcrop)
+  if (is.null(onsetdata) || length(onsetdata) < 2) {
+    stop("No onset data available for the specified sites and crop. Please choose valid site names from the appropriate dataset.")
   }
   
-  # Same logic apply to Lentil with different some stages
+  # Extract and process data
+  tempdata <- onsetdata[[1]]
+  phenodata <- onsetdata[[2]]
+  names(tempdata)[grep("site", names(tempdata))] <- "sitecode"
+  names(phenodata)[grep("site", names(phenodata))] <- "sitecode"
+  names(phenodata)[grep("onset", names(phenodata))] <- "onset"
   
-  else if(crop == "Lentil") {
+  tminvars <- grep("tmin", names(tempdata), value = TRUE)
+  tmaxvars <- grep("tmax", names(tempdata), value = TRUE)
+  
+  # Prepare cumulative GDD data
+  prepareGDD <- function(data, base, tminvars, tmaxvars) {
+    melted <- reshape2::melt(data, id.vars = "sitecode") |>
+      arrange(sitecode) |>
+      mutate(value = pmax(value, base, na.rm = TRUE))  # Handle missing values
     
-    data5 = within(data5, tmax[tmax > max] <- max)
+    tmin_data <- melted[melted$variable %in% tminvars, ]
+    tmax_data <- melted[melted$variable %in% tmaxvars, ]
     
-    FB.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 807)))
-    FB.df$FB = ifelse((FB.df$DAP + FB.df$onset) > 365, (FB.df$DAP + FB.df$onset) - 365, FB.df$DAP + FB.df$onset)
+    # Ensure lengths match
+    if (nrow(tmin_data) != nrow(tmax_data)) {
+      stop("Mismatch in the number of rows for tmin and tmax. Check the input data for consistency.")
+    }
     
-    FB.df2 <- FB.df[ , c("sitecode", "onset", "FB")]
+    # Calculate GDD
+    gdd <- (tmin_data$value + tmax_data$value) / 2
+    if (all(is.na(gdd))) 
+      stop("GDD calculation failed: All values are NaN.")
     
-    FC.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 980)))
-    FC.df$FC50 = ifelse((FC.df$DAP + FC.df$onset) > 365, (FC.df$DAP + FC.df$onset) - 365, FC.df$DAP + FC.df$onset)
-    
-    FC.df2 <- FC.df[ , c("sitecode", "onset", "FC50")]
-    
-    SF.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1187)))
-    SF.df$SF = ifelse((SF.df$DAP + SF.df$onset) > 365, (SF.df$DAP + SF.df$onset) - 365, SF.df$DAP + SF.df$onset)
-    
-    SF.df2 <- SF.df[ , c("sitecode", "onset", "SF")]
-    
-    M.df <- data5 %>% dplyr::group_by(sitecode) %>% dplyr::slice(which.min(abs(cumgdd - 1808)))
-    M.df$M = ifelse((M.df$DAP + M.df$onset) > 365, (M.df$DAP + M.df$onset) - 365, M.df$DAP + M.df$onset)
-    
-    M.df2 <- M.df[ , c("sitecode", "onset", "M")]
+    data.frame(
+      sitecode = tmin_data$sitecode,
+      tmin = tmin_data$value,
+      tmax = tmax_data$value,
+      gdd = gdd
+     )|>
+      group_by(sitecode)|>
+      mutate(cumgdd = cumsum(gdd), DAP = row_number())
   }
   
-  # Same logic apply to chickpea
+  data5 <- prepareGDD(tempdata, base, tminvars, tmaxvars) |>
+    left_join(phenodata, by = "sitecode")
   
-  if(crop %in% c("Durum wheat", "Bread wheat", "Barley")) {
-    
-    # Merge multiple data frames into one
-    pheno.df = Reduce(function(...) merge(..., all = TRUE), list(HB.df2, FB.df2, FC.df2, GFB.df2, GFC.df2))
-    
-    # Compute phenological variables, accounting for year-round cycles
-    # Adjusts for year-round cycles by adding 365 if the calculated length is negative
-    
-    pheno.df$LHB = ifelse((pheno.df$HB - pheno.df$onset) < 0, (pheno.df$HB - pheno.df$onset) + 365, pheno.df$HB - pheno.df$onset)
-    pheno.df$LFB = ifelse((pheno.df$FB - pheno.df$HB) < 0, (pheno.df$FB - pheno.df$HB) + 365, pheno.df$FB - pheno.df$HB)
-    pheno.df$LFC = ifelse((pheno.df$FC - pheno.df$FB) < 0, (pheno.df$FC - pheno.df$FB) + 365, pheno.df$FC - pheno.df$FB)
-    pheno.df$LGFB = ifelse((pheno.df$GFB - pheno.df$FC) < 0, (pheno.df$GFB - pheno.df$FC) + 365, pheno.df$GFB - pheno.df$FC)
-    pheno.df$LGFC = ifelse((pheno.df$GFC - pheno.df$GFB) < 0, (pheno.df$GFC - pheno.df$GFB) + 365, pheno.df$GFC - pheno.df$GFB)
-    
-    # Keep only necessary columns
-    data6 = pheno.df[ , c("sitecode", "onset", "LHB", "LFB", "LFC", "LGFB", "LGFC")]
-    # Calculate the total growing cycle length for each site
-    data6$Cycle = rowSums(data6[ , -c(1:2)])
-    
-    data5 = suppressMessages(plyr::join(data5, data6[ , c("sitecode", "Cycle")]))
-    dataCycle = data5  %>% dplyr::filter(data5$DAP<=data5$Cycle)
-    
-    data7 = dataCycle[ , c("sitecode", "tmin", "tmax", "gdd", "cumgdd", "DAP")]
-    
-    # Gather Growth and onset data 
-    list.df1 = list(Growth_Period = data6, Onset_Data = phenodata)
-    
-    # Gather Growth, onset and GDD data
-    list.df2 = list(Growth_Period = data6, Onset_Data = phenodata, Growing_Degree_Days = data7)
+  print(glimpse(data5))
+  
+  # Check if sitecode data is available after merging
+  if (nrow(data5) == 0) {
+    stop("No matching data found for the specified site names. Please verify the site names and try again.")
   }
   
-  # Same logic apply to Chickpea
+  # Define thresholds for each crop
+  thresholds <- list(
+    "Durum wheat" = c(1567, 1739, 1768, 1825, 2170),
+    "Bread wheat" = c(1567, 1739, 1768, 1825, 2170),
+    "Barley" = c(1357, 1426, 1496, 1635, 1960),
+    "Chickpea" = c(680, 870, 1075, 1740),
+    "Lentil" = c(807, 980, 1187, 1808)
+  )
+  stage_names <- list(
+    "Durum wheat" = c("HB", "FB", "FC", "GFB", "GFC"),
+    "Bread wheat" = c("HB", "FB", "FC", "GFB", "GFC"),
+    "Barley" = c("HB", "FB", "FC", "GFB", "GFC"),
+    "Chickpea" = c("FB", "FC", "GFB", "GFC"),
+    "Lentil" = c("FB", "FC50", "SF", "M")
+  )
   
-  else if(crop == "Chickpea"){
-    
-    pheno.df = Reduce(function(...) merge(..., all = TRUE), list(FB.df2, FC.df2, GFB.df2, GFC.df2))
-    
-    pheno.df$LFB = ifelse((pheno.df$FB - pheno.df$onset) < 0, (pheno.df$FB - pheno.df$onset) + 365, pheno.df$FB - pheno.df$onset)
-    pheno.df$LFC = ifelse((pheno.df$FC - pheno.df$FB) < 0, (pheno.df$FC - pheno.df$FB) + 365, pheno.df$FC - pheno.df$FB)
-    pheno.df$LGFB = ifelse((pheno.df$GFB - pheno.df$FC) < 0, (pheno.df$GFB - pheno.df$FC) + 365, pheno.df$GFB - pheno.df$FC)
-    pheno.df$LGFC = ifelse((pheno.df$GFC - pheno.df$GFB) < 0, (pheno.df$GFC - pheno.df$GFB) + 365, pheno.df$GFC - pheno.df$GFB)
-    
-    data6 = pheno.df[ , c("sitecode", "onset", "LFB", "LFC", "LGFB", "LGFC")]
-    data6$Cycle = rowSums(data6[ , -c(1:2)])
-    
-    data5 = suppressMessages(plyr::join(data5, data6[ , c("sitecode", "Cycle")]))
-    dataCycle = data5  %>% dplyr::filter(data5$DAP<=data5$Cycle)
-    data7 = dataCycle[ , c("sitecode", "tmin", "tmax", "gdd", "cumgdd", "DAP")]
-    
-    list.df1 = list(Growth_Period = data6, Onset_Data = phenodata)
-    
-    list.df2 = list(Growth_Period = data6, Onset_Data = phenodata, Growing_Degree_Days = data7)
+  # Calculate growth stages
+  calculateStages <- function(data, cumgdd_values, stage_names) {
+    results <- lapply(seq_along(cumgdd_values), function(i) {
+      stage_df <- data |>
+        group_by(sitecode) |>
+        slice(which.min(abs(cumgdd - cumgdd_values[i])))
+      if (nrow(stage_df) == 0) {
+        warning(paste("No data found for stage:", stage_names[i], "with threshold:", cumgdd_values[i]))
+        return(NULL)
+      }
+      setNames(stage_df[, c("sitecode", "onset", "DAP")], c("sitecode", "onset", stage_names[i]))
+    })
+    results <- results[!sapply(results, is.null)]  # Remove empty results
+    if (length(results) == 0) stop("No data available for any growth stage.")
+    Reduce(function(x, y) merge(x, y, by = c("sitecode", "onset"), all = TRUE), results)
   }
   
-  # Same logic apply to Lentil
-  
-  else if(crop == "Lentil"){
-    
-    pheno.df = Reduce(function(...) merge(..., all = TRUE), list(FB.df2, FC.df2, SF.df2, M.df2))
-    
-    pheno.df$LFB = ifelse((pheno.df$FB - pheno.df$onset) < 0, (pheno.df$FB - pheno.df$onset) + 365, pheno.df$FB - pheno.df$onset)
-    pheno.df$LFC = ifelse((pheno.df$FC50 - pheno.df$FB) < 0, (pheno.df$FC50 - pheno.df$FB) + 365, pheno.df$FC50 - pheno.df$FB)
-    pheno.df$LSF = ifelse((pheno.df$SF - pheno.df$FC) < 0, (pheno.df$SF - pheno.df$FC) + 365, pheno.df$SF - pheno.df$FC)
-    pheno.df$LM = ifelse((pheno.df$M - pheno.df$SF) < 0, (pheno.df$M - pheno.df$SF) + 365, pheno.df$M - pheno.df$SF)
-    
-    data6 = pheno.df[ , c("sitecode", "onset", "LFB", "LFC", "LSF", "LM")]
-    data6$Cycle = rowSums(data6[ , -c(1:2)])
-    
-    data5 = suppressMessages(plyr::join(data5, data6[ , c("sitecode", "Cycle")]))
-    dataCycle = data5  %>% dplyr::filter(data5$DAP<=data5$Cycle)
-    data7 = dataCycle[ , c("sitecode", "tmin", "tmax", "gdd", "cumgdd", "DAP")]
-    
-    list.df1 = list(Growth_Period = data6, Onset_Data = phenodata)
-    
-    list.df2 = list(Growth_Period = data6, Onset_Data = phenodata, Growing_Degree_Days = data7)
+  # Validate crop thresholds
+  if (any(thresholds[[crop]] > max(data5$cumgdd, na.rm = TRUE))) {
+    stop("Threshold values exceed the maximum cumgdd in the data.")
   }
   
-  # Return the appropriate list of data frames based on whether 'gdd' is TRUE or FALSE
+  stages <- calculateStages(data5, thresholds[[crop]], stage_names[[crop]])
   
-  if(gdd) return(list.df2)
+  # Compute durations and cycles
+  stages <- stages |>
+    mutate(across(-c(sitecode, onset), ~ ifelse(.x - onset < 0, .x - onset + 365, .x - onset))) |>
+    mutate(Cycle = rowSums(across(-c(sitecode, onset))))
   
-  else if(!gdd) return(list.df1)
+  data5 <- left_join(data5, stages |> select(sitecode, Cycle), by = "sitecode")
+  dataCycle <- filter(data5, DAP <= Cycle)
+  
+  data7 <- dataCycle |> select(sitecode, tmin, tmax, gdd, cumgdd, DAP)
+  
+  list.df1 <- list(Growth_Period = stages, Onset_Data = phenodata)
+  list.df2 <- list(Growth_Period = stages, Onset_Data = phenodata, Growing_Degree_Days = data7)
+  
+  if (gdd) return(list.df2) else return(list.df1)
 }

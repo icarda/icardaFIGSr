@@ -1,4 +1,4 @@
-#' @title Plotting Accessions on Map. 
+#' @title Plotting Accessions on Map
 #' @description this function returns a map with points showing where accessions are located.
 #' @param df object of class "data.frame" with coordinates of accessions and target variable.
 #' @param long character. Column name from \code{df} representing longitude.
@@ -8,7 +8,7 @@
 #'
 #' @author Khadija Aouzal, Zakaria Kehel
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  # Loading FIGS subset for wheat sodicity resistance
 #'  data(FIGS)
 #'  # World Map showing locations of accessions
@@ -23,10 +23,9 @@
 #'  mapAccessions(FIGS, long = "Longitude", lat = "Latitude", 
 #'  y = "PopulationType")
 #'  }
-#' @rdname mapAccessions
-#' @export
+#' @name mapAccessions
 #' @import leaflet 
-
+#' @export
 
 
 mapAccessions <- function(df, long, lat, y = NULL){
@@ -40,8 +39,7 @@ mapAccessions <- function(df, long, lat, y = NULL){
                                 fill = TRUE,
                                 fillColor = "#2d7436",
                                 fillOpacity = 0.2, weight = 2) 
-  }
-  else {
+  } else {
     ## omit NAs in y column
     df.na.omit <- df[!is.na(df[[y]]), ] 
     
@@ -51,8 +49,7 @@ mapAccessions <- function(df, long, lat, y = NULL){
         domain = df[[y]],
         na.color = "#808080"
       )
-    }
-    else {
+    } else {
       pal <- leaflet::colorFactor(
         palette = c("#2d7436", "#ED7506"),
         domain = df[[y]],

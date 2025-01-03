@@ -3,12 +3,12 @@
 \docType{data}
 \name{FIGS}
 \alias{FIGS}
-\title{FIGS subset for wheat sodicity resistance}
+\title{FIGS}
 \format{
 A data frame with 201 rows and 15 variables
 }
 \usage{
-data(FIGS)
+data("FIGS")
 }
 \description{
 FIGS subset for wheat sodicity resistance
@@ -16,10 +16,10 @@ constructed using the harmonized world soil database HWSD
 }
 \examples{
 if(interactive()){
- data(FIGS)
+ data("FIGS")
 }
 }
 \references{
-\href{http://www.fao.org/3/aq361e/aq361e.pdf}{HWSD}
+\href{https://openknowledge.fao.org/server/api/core/bitstreams/2f45beea-e165-4264-951e-20b7c1da65c0/content}{HWSD}
 }
 \keyword{datasets}

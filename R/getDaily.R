@@ -4,17 +4,17 @@
 #' @param sites character. Names of sites from which to extract data.
 #' @param var character. Climatic variable(s) to be extracted.
 #' @param cv boolean. If \code{TRUE}, returns a data frame with coefficient of variation for each variable for each day of the calendar year. Default: FALSE.
-#' @return An object with specified climatic variables for names in \code{sites}.
+#' @return An object with specified climatic variables for specified site code in \code{sites}.
 #'
 #' If \code{cv = TRUE}, the object is a list containing two data frames: the first one with average daily values of climatic variables, and the second one with daily coefficient of variation for each climatic variable.
 #'
 #' If \code{cv = FALSE}, the object is a data frame with average daily values of climatic variables.
 #' @details ICARDA data has to be accessible either from a local directory on the computer or from an online repository. \code{getDaily} will extract the climatic variables specified in \code{var} for the sites specified in \code{sites}.
-#'
-#' For daily data, the function extracts average daily values starting from the first day of the calendar year, i.e. January 1, until the last day of the calendar year, i.e. December 31. Thus, 365 columns with daily values are created for each variable.
+#'.         The function then extracts average daily values starting from the first day of the calendar year, until the last day of the calendar year. Thus, returning 365 columns with daily values are created for each variable.
+
 #' @author Zakaria Kehel, Bancy Ngatia
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  # Extract daily data for durum wheat
 #'  durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
 #'  daily <- getDaily(sites = levels(as.factor(durum$SiteCode)),
@@ -27,12 +27,24 @@
 #'  
 #' @seealso
 #'  \code{\link[reshape2]{cast}}
-#' @rdname getDaily
-#' @export
+#' @name getDaily
 #' @importFrom reshape2 dcast
 #' @importFrom utils capture.output
+#' @export
 
 getDaily <- function(sites, var, cv = FALSE) {
+  
+  # Set high timeout for value in seconds to load data
+  options(timeout = max(1800, getOption("timeout")))
+  
+  # Check if cv is valid
+  if (!is.logical(cv)) {
+    stop("cv should be TRUE or FALSE")
+  }
+  
+  if(!is.character(var) || !var %in% c("tavg", "prec", "rh")) {
+    stop("var should be a single or multiple string among these : tavg, prec, rh")
+  }
   
   # Load ICARDA data from a remote source
   message("Data loading started ....")

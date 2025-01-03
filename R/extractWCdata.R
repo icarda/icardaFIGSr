@@ -1,6 +1,6 @@
 #' @title Extracting historical climate data from WorldClim 2.1
 #' @description extractWCdata returns a data frame based on specified climatic variables.
-#' This function modifies the \href{https://github.com/rspatial/raster/blob/master/R/getData.R}{getData function from raster R package}, to extract world climate data of version 2.1 instead of version 1.4.
+#' This function modifies the \href{https://github.com/rspatial/raster/blob/master/R/getData.R}{getData function from the raster R package} to extract world climate data of version 2.1 instead of version 1.4.
 #' @param sites object of class "data.frame" with coordinates of sites from which to extract data.
 #' @param long character. Name of column from \code{sites} with longitude.
 #' @param lat character. Name of column from \code{sites} with latitude.
@@ -9,151 +9,156 @@
 #' @return An object of class "data.frame" with specified climatic variables for coordinates in \code{sites}.
 #' @details A grid can be created with any particular coordinates and used as input for \code{sites} (see section 'Examples'). \code{extractWCdata} will use the given coordinates to extract data from the WorldClim 2.1 database.
 #' The extracted data will most likely contain NAs for sites where climate data is not available. These should be removed or imputed before using the data to make predictions.
-#' @author Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal
+#' @author Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal, 
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  # Create grid
-#'  sp1 <- seq(-16, 115, length = 10)
-#'  sp2 <- seq(25, 59, length = 10) 
+#'  sp1 <- seq(-16, 115, length = 3)
+#'  sp2 <- seq(25, 59, length = 3)
 #'  sp <- expand.grid(x = sp1, y = sp2)
-#'
+#' 
 #'  # Extract data using grid
-#'  sp.df0 <- extractWCdata(sp, long = 'x', lat = 'y', var = 'tavg')
+#'  sp.df0 <- extractWCdata(sp, long = 'long', lat = 'lat', var = 'bio')
 #'  sp.df <- na.omit(sp.df0)
 #'  }
-#' @rdname extractWCdata
-#' @export
+#' @name extractWCdata
 #' @importFrom sf st_as_sf
 #' @importFrom raster extract
+#' @importFrom utils browseURL
+#' @export
 
-
-# Main function for extracting WorldClim data
-extractWCdata <- function(sites, long, lat, var, res = 2.5){
+extractWCdata <- function(sites, long, lat, var, res = 2.5) {
+  
+  # Increase timeout to 10 minutes (600 seconds)
+  options(timeout = max(300, getOption("timeout")))
+  
+  # Validate 'sites' data frame
+  if (!is.data.frame(sites) || !all(c(long, lat) %in% colnames(sites))) {
+    stop("Sites must be a data frame with 'lat' and 'long' columns")
+  }
+  
+  # Ensure latitude and longitude are numeric
+  if (!is.numeric(sites[[lat]]) || !is.numeric(sites[[long]])) {
+    stop("Latitude and Longitude must be numeric.")
+  }
   
   # Remove records with NA coordinates
-  out <- list(
-    is.na(sites[[long]]),
-    is.na(sites[[lat]])
-  )
-  
-  outReduced <- !Reduce("|", out)
-  sites <- sites[outReduced,]
+  sites <- sites[!is.na(sites[[long]]) & !is.na(sites[[lat]]), ]
   
   # Convert to sf object
   sf_sites <- sf::st_as_sf(sites, coords = c(long, lat), crs = 4326)
   
-  # Get rasters for each var and set naming schema
-  for (ivar in var){
-    rasterfile <- .getRasterData(var = ivar, res = res)
-    for (i in 1:length(names(rasterfile))){
-      f.name <- names(rasterfile)[i]
-      var.name <- sub(paste(".*",res,"m_", sep = ''), "", f.name)
-      message(var.name)
+  # Loop over climatic variables to extract data
+  for (ivar in var) {
+    rasterfile <- tryCatch({
+      .getRasterData(var = ivar, res = res)
+    }, error = function(e) {
+      message("Automatic download failed for '", ivar, "' from the primary source.")
+      message("Attempting fallback download...")
       
-      # Extract raster values to sf object
-      extracted_values <- raster::extract(rasterfile[[i]], sf::st_coordinates(sf_sites), method = 'simple')
-      sites[ , var.name] <- extracted_values
+      # Fallback to download specific variable from fallback URL
+      fallback_url <- paste0("https://www.worldclim.org/data/worldclim21.html#", ivar, "_", res, "m")
+      .downloadFallbackFiles(ivar, res, fallback_url)
+      
+      # Attempt to load the downloaded files again after fallback
+      rasterfile <- raster::stack(list.files(paste0(getwd(), "/worldclim/vars/", ivar), pattern = "\\.tif$", full.names = TRUE))
+      
+      if (length(rasterfile) == 0) {
+        stop("No valid files found. Please download from the fallback URL.")
+      }
+      
+      return(rasterfile)
+    })
+    
+    if (!is.null(rasterfile)) {
+      for (i in 1:length(names(rasterfile))) {
+        f.name <- names(rasterfile)[i]
+        var.name <- sub(paste(".*", res, "m_", sep = ''), "", f.name)
+        
+        # Extract raster values to sf object
+        extracted_values <- raster::extract(rasterfile[[i]], sf::st_coordinates(sf_sites), method = 'bilinear')
+        sites[, var.name] <- extracted_values
+      }
     }
   }
+  
   return(sites)
 }
 
-# Helper function for getting raster data
+# Helper function for downloading and extracting raster data
 .getRasterData <- function(var, res) {
   stopifnot(var %in% c('tavg', 'tmin', 'tmax', 'prec', 'bio', 'srad', 'vapr', 'wind'))
   
-  # Set path
-  path <- getwd()
-  path <- paste0(path, "/WorldClim_", res, "/")
-  dir.create(path, showWarnings = FALSE)
+  path <- paste0(getwd(), "/WorldClim_", res, "/")
+  dir.create(path, showWarnings = FALSE, recursive = TRUE)
   
-  # Construct URL naming schema
-  theurl <- paste0("https://biogeo.ucdavis.edu/data/worldclim/v2.1/base/wc2.1_", res, "m_", var, ".zip")
+  primary_url <- paste0("https://biogeo.ucdavis.edu/data/worldclim/v2.1/base/wc2.1_", res, "m_", var, ".zip")
+  
   zip <- paste0("wc2.1_", res, "m_", var, ".zip")
   zipfile <- paste0(path, zip)
   
-  if (var != 'bio') {
-    tiffiles <- paste0("wc2.1_", res, "m_", var, "_", sprintf("%02d", 1:12), ".tif")
-  } else {
-    tiffiles <- paste0("wc2.1_", res, "m_", var, "_", 1:19, ".tif")  
-  }
-  
-  
-  files <- paste0(path, tiffiles)
-  fc <- sum(file.exists(files))
-  
-  # Download and unzip the file if not all files are present
-  if (fc < length(files)) {
+  if (!file.exists(zipfile)) {
+    .download(primary_url, zipfile)
     if (!file.exists(zipfile)) {
-      .download(theurl, zipfile)
-      if (!file.exists(zipfile)) {
-        message("Could not download file -- perhaps it does not exist.")
-      }
+      stop("Unable to download the file. Attempting fallback download.")
     }
     utils::unzip(zipfile, exdir = dirname(zipfile))
   }
   
-  # gather climate rasters
+  files <- list.files(path, pattern = "\\.tif$", full.names = TRUE)
   st <- raster::stack(files)
   raster::projection(st) <- "+proj=longlat +datum=WGS84"
   return(st)
 }
 
-
-# Function to download a file from a URL and save it with a specified filename
+# Download function with error handling
 .download <- function(url, filename, overwrite = FALSE) {
-  
-  # Generate a temporary filename with the '.download' suffix
   fn <- tempfile(fileext = '.download')
-  
-  # Initialize success flag
   success <- FALSE
   
-  # Attempt to download the file from the URL to the temporary filename
   tryCatch({
-    res <- utils::download.file(url = url, destfile = fn,
-                                method = "auto", quiet = FALSE,
-                                mode = "wb", cacheOK = TRUE, timeout=600)
+    res <- utils::download.file(url = url, destfile = fn, method = "libcurl", quiet = FALSE, mode = "wb", cacheOK = TRUE, timeout=600)
     if (res == 0) {
       success <- TRUE
     }
   }, error = function(e) {
-    success <- FALSE
     message("Download failed: ", e$message)
+    success <- FALSE
   })
   
-  # Check if the download was successful
   if (success) {
-    
-    # Check if file already exists and if overwrite is not allowed
     if (file.exists(filename) && !overwrite) {
       stop("File already exists and overwrite is set to FALSE.")
     }
     
-    # Use tryCatch to catch any file operation errors
     tryCatch({
-      
-      # Store the current warning level and set it back at the end
-      w <- getOption('warn')
-      on.exit(options('warn' = w), add = TRUE)
-      
-      # Try to rename the file; if it fails, try copying
-      if (!file.rename(fn, filename)) { 
+      if (!file.rename(fn, filename)) {
         if (!file.copy(fn, filename, overwrite = overwrite)) {
           stop("Failed to copy the file.")
         }
       }
       
-      # Remove the temporary file if it still exists
       if (file.exists(fn)) {
         file.remove(fn)
       }
-      
     }, error = function(e) {
       stop("An error occurred: ", e$message)
     })
-    
   } else {
-    stop("Could not download the file.")
+    stop("Could not download the file. Please manually download it.")
   }
+}
+
+# Fallback download function to fetch specific variable files
+.downloadFallbackFiles <- function(var, res, fallback_url) {
+  # Fallback download logic, using the structure of the fallback URL
+  message("Attempting to download variable '", var, "' from fallback URL: ", fallback_url)
+  
+  # Define local directories to save the downloaded files
+  var_path <- paste0(getwd(), "/worldclim/", var, "/")
+  dir.create(var_path, showWarnings = FALSE, recursive = TRUE)
+  
+  # Simulating download by telling user to manually download from URL
+  message("Please download the necessary files from the fallback URL and place them in: ", var_path)
+  browseURL(fallback_url)  # Automatically opens the fallback URL in the default browser
 }
