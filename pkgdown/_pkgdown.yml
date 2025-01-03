@@ -1,0 +1,77 @@
+# Title of the package site
+pkgdown:
+  as_is: true
+  title: "icardaFIGSr"
+  url: "https://github.com/Analychaf/icardaFIGSr"
+
+# Build options
+template:
+  bootstrap: 5
+
+development:
+  mode: auto
+# Home page customization
+home:
+  title: "ICARDA FIGS R Package"
+  description: >
+    icardaFIGSr provides tools for subsetting genebank collections using
+    the Focused Identification of Germplasm Strategy (FIGS). Learn how to use the package effectively with our guides and references.
+
+# Navbar configuration
+navbar:
+  structure:
+    left:
+      - "reference"
+      - "articles"
+      - "news"
+    right:
+      - "https://github.com/Analychaf/icardaFIGSr"
+
+# Specify where articles (vignettes) are located
+articles:
+  - title: "Vignettes"
+    contents:
+      - CropData
+      - ML_Workflows
+      - Sites_climate
+
+
+# Additional datasets to include in the reference
+datasets:
+  - BarleyRNOWC
+  - DurumWheatDHEWC
+  - FIGS
+  - durumDaily
+  - durumWC
+  - septoriaDurumWC
+
+# Reference section for functions and datasets
+reference:
+  sections:
+    - title: "Datasets"
+      contents:
+        - BarleyRNOWC
+        - DurumWheatDHEWC
+        - FIGS
+        - durumDaily
+        - durumWC
+        - septoriaDurumWC
+    - title: "Crop & climate data extraction"
+      contents:
+        - getCrops
+        - getAccessions
+        - mapAccessions
+        - getCropTraits
+        - getTraitsData
+        - getOnset
+        - getGrowthPeriod
+        - getDaily
+        - extractWCdata
+    - title: "Machine learning models"
+      contents:
+        - splitData
+        - tuneTrain
+        - varimpPred
+        - getMetrics
+        - getMetricsPCA
+        - modelingSummary
