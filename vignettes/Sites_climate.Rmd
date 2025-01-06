@@ -141,7 +141,7 @@ sf.df0 <- extractWCdata(
   sf,
   long = 'long',
   lat = 'lat',
-  var = c('bio'),  # Bioclimatic variables
+  var = c('tavg',"prec"),  # climatic variables
   res = 2.5        # Spatial resolution
 )
 

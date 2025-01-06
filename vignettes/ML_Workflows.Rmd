@@ -317,9 +317,8 @@ DurumWheatDHEWC_sample%>%
 ```{r ,eval=FALSE}
 
 ## Not run:
-
 # Run Multiclass Classification
-rf.DHE_class <- icardaFIGSr::tuneTrain(data = DurumWheatDHEWC_sample,
+knn.DHE_class <- icardaFIGSr::tuneTrain(data = DurumWheatDHEWC_sample,
                               y =  'DHE_class',
                               method = 'rf',
                               parallelComputing = TRUE,
@@ -328,8 +327,7 @@ rf.DHE_class <- icardaFIGSr::tuneTrain(data = DurumWheatDHEWC_sample,
                               imbalanceThreshold = 0.2,
                               classProbs = TRUE,
                               repeats = 3)
-rf.DHE_class
-
+knn.DHE_class
 ## End(Not run)
 ```
 

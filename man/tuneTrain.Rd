@@ -74,20 +74,18 @@ Imbalance handling methods "up" and "down" use ,respectively, upsample() and dow
 }
 \examples{
 \dontrun{
-## Reading local test datasets
-
-data("DurumWheatDHEWC")
-data("BarleyRNOWC")
-data("septoriaDurumWC")
+# Reading local test datasets
+data(DurumWheatDHEWC)
+data(BarleyRNOWC)
+data(septoriaDurumWC)
 
 ## Binary classification of ST_S with balanced data
-rf.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
+tree.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
                      y =  'ST_S',
-                     method = 'rf',
+                     method = 'treebag',
                      summary = multiClassSummary,
                      repeats = 3,
                      classProbs = TRUE)
-
 
 ## Binary classification of RNO with imbalanced data
 knn.RNO <- tuneTrain(data = BarleyRNOWC,
@@ -103,32 +101,10 @@ knn.RNO <- tuneTrain(data = BarleyRNOWC,
 ## Regression of DHE
 svm.DHE <- tuneTrain(data = DurumWheatDHEWC,
                      y =  'DHE',
-                     method = 'knn',
+                     method = 'svmLinear2',
                      summary = defaultSummary,
                      classProbs = FALSE,
                      repeats = 3)
-
-
-## Multiclass classification of DHE Classes with imbalanced data
-
-# Create DHE Classes from DurumWheatDHEWC dataset
-
-DurumWheatDHEWC$DHE <- ifelse(DurumWheatDHEWC$DHE <=172, "1", 
-                               ifelse(DurumWheatDHEWC$DHE <= 180, "2", 
-                                      "3"))
-                                       
-DurumWheatDHEWC$DHE <- factor(DurumWheatDHEWC$DHE)
-
-Run Classification
-rf.DHE.Classes <- tuneTrain(data = DurumWheatDHEWC,
-                             y =  'DHE',
-                             method = 'rf',
-                             summary = multiClassSummary,
-                             imbalanceMethod ="up",
-                             imbalanceThreshold = 0.2,
-                             classProbs = TRUE,
-                             repeats = 3)
-
  }
 }
 \seealso{

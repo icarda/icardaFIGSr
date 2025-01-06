@@ -108,12 +108,12 @@ This package is licensed under the MIT License. See the LICENSE file for details
 
 This project was developed with contributions from:
 <br>
-- **Zakaria Kehel** (*Maintainer and Author*) 
-- **Khadija Aziz** (*Author*)  
-- **Chafik Analy** (*Author*)
-- **Khadija Aouzal** (*Author*),
-- **Bancy Ngatia** (*Author*),
-- **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar** (*Contributors*)
+- **Zakaria Kehel** (*Maintainer and Author*)<br>
+- **Khadija Aziz** (*Author*)<br>
+- **Khadija Aouzal** (*Author*)<br>
+- **Chafik Analy** (*Author*)<br>
+- **Bancy Ngatia** (*Author*)<br>
+- **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar** (*Contributors*)<br>
 
 ## Contact
 

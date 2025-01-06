@@ -49,5 +49,5 @@ metrics.nnet <- getMetrics(y = data.test$ST_S, yhat = pred.nnet, classtype = 2)
 \code{\link[caret]{confusionMatrix}}
 }
 \author{
-Zakaria Kehel, Bancy Ngatia, Khadija Aziz
+Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
 }

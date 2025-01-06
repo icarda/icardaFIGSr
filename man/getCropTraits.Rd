@@ -53,5 +53,5 @@ A list of available crops to use as input for \code{crop} can also be obtained f
 }
 }
 \author{
-Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
+Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar, Chafik Analy
 }

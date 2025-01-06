@@ -84,19 +84,19 @@ The extracted data will most likely contain NAs for sites where climate data is 
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
-    <p>Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal,</p>
+    <p>Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal, Chafik Analy</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span> <span class="co"># Create grid</span></span></span>
-<span class="r-in"><span> <span class="va">sp1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">16</span>, <span class="fl">115</span>, length <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-in"><span> <span class="va">sp2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fl">59</span>, length <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
-<span class="r-in"><span> <span class="va">sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">sp1</span>, y <span class="op">=</span> <span class="va">sp2</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">long</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">16</span>, <span class="fl">115</span>, length <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">lat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fl">59</span>, length <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">sp1</span>, y <span class="op">=</span> <span class="va">sp2</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span> <span class="co"># Extract data using grid</span></span></span>
-<span class="r-in"><span> <span class="va">sp.df0</span> <span class="op">&lt;-</span> <span class="fu">extractWCdata</span><span class="op">(</span><span class="va">sp</span>, long <span class="op">=</span> <span class="st">'long'</span>, lat <span class="op">=</span> <span class="st">'lat'</span>, var <span class="op">=</span> <span class="st">'bio'</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">sp.df0</span> <span class="op">&lt;-</span> <span class="fu">extractWCdata</span><span class="op">(</span><span class="va">sf</span>, long <span class="op">=</span> <span class="st">'long'</span>, lat <span class="op">=</span> <span class="st">'lat'</span>, var <span class="op">=</span> <span class="st">'bio'</span><span class="op">)</span></span></span>
 <span class="r-in"><span> <span class="va">sp.df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html" class="external-link">na.omit</a></span><span class="op">(</span><span class="va">sp.df0</span><span class="op">)</span></span></span>
 <span class="r-in"><span> <span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
