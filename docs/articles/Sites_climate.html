@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">icardaFIGSr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,7 @@
                         <h4 data-toc-skip class="author">IcardaFIGSr
 Team</h4>
             
-            <h4 data-toc-skip class="date">2025-01-02</h4>
+            <h4 data-toc-skip class="date">2025-01-03</h4>
       
 
       <div class="d-none name"><code>Sites_climate.Rmd</code></div>
@@ -71,47 +71,43 @@ Team</h4>
 <div class="section level2">
 <h2 id="getdaily">getDaily()<a class="anchor" aria-label="anchor" href="#getdaily"></a>
 </h2>
+<p><code><a href="../reference/getDaily.html">getDaily()</a></code> Retrieves Daily Weather Data from ICARDA
+database given a vector of <code>site_codes</code> and a vector of
+<code>climate variables</code> among possible choices. This example
+demonstrates how to use the function to retrieve average daily
+temperature (tavg) for a subset of sites. <br></p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co">### Load Sample Data</span></span>
+<span><span class="va">septoriaDurumWC</span> <span class="op">&lt;-</span> <span class="fu">icardaFIGSr</span><span class="fu">::</span><span class="va"><a href="../reference/septoriaDurumWC.html">septoriaDurumWC</a></span></span>
 <span><span class="co">#&gt; Error in get(paste0(generic, ".", class), envir = get_method_env()) : </span></span>
 <span><span class="co">#&gt;   object 'type_sum.accel' not found</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     filter, lag</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster" class="external-link">raster</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: sp</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'raster'</span></span>
-<span><span class="co">#&gt; The following object is masked from 'package:dplyr':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     select</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">icardaFIGSr</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Load sample data for binary classification on balanced data &gt;</span></span>
-<span><span class="co"># Need to adjust this syntax </span></span>
-<span></span>
-<span><span class="va">septoriaDurumWC</span> <span class="op">&lt;-</span> <span class="fu">icardaFIGSr</span><span class="fu">::</span><span class="va"><a href="../reference/septoriaDurumWC.html">septoriaDurumWC</a></span></span>
-<span><span class="va">durumDaily</span> <span class="op">&lt;-</span> <span class="fu">icardaFIGSr</span><span class="fu">::</span><span class="va"><a href="../reference/durumDaily.html">durumDaily</a></span></span>
-<span></span>
-<span><span class="va">Sites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">durumDaily</span><span class="op">$</span><span class="va">site_code</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">Daily_data</span> <span class="op">&lt;-</span> <span class="fu">icardaFIGSr</span><span class="fu">::</span><span class="fu"><a href="../reference/getDaily.html">getDaily</a></span><span class="op">(</span>sites <span class="op">=</span> <span class="va">Sites</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tavg"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">durumDaily</span> <span class="op">&lt;-</span> <span class="fu">icardaFIGSr</span><span class="fu">::</span><span class="va"><a href="../reference/durumDaily.html">durumDaily</a></span></span></code></pre></div>
+<div class="section level3">
+<h3 id="extract-site-codes">Extract Site Codes<a class="anchor" aria-label="anchor" href="#extract-site-codes"></a>
+</h3>
+<p>The durumDaily dataset contains site metadata, including site codes.
+Here, we extract site codes to specify the locations for data retrieval.
+<br></p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">Sites</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">durumDaily</span><span class="op">$</span><span class="va">site_code</span><span class="op">)</span></span>
+<span><span class="co"># Retrieve Daily Data</span></span>
+<span><span class="va">Daily_data</span> <span class="op">&lt;-</span> <span class="fu">icardaFIGSr</span><span class="fu">::</span><span class="fu"><a href="../reference/getDaily.html">getDaily</a></span><span class="op">(</span>sites <span class="op">=</span> <span class="va">Sites</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,</span>
+<span>                                    var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tavg"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Data loading started ....</span></span>
 <span><span class="co">#&gt; Loading completed!</span></span>
 <span><span class="co">#&gt; Using tavg as value column: use value.var to override.</span></span>
 <span></span>
-<span><span class="va">Daily_data</span> <span class="op">&lt;-</span> <span class="va">Daily_data</span><span class="op">|&gt;</span></span>
-<span>   <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html" class="external-link">gather</a></span><span class="op">(</span><span class="op">-</span><span class="va">site_code</span>, key<span class="op">=</span><span class="st">"key"</span>,value<span class="op">=</span><span class="st">"value"</span><span class="op">)</span></span>
+<span><span class="co">## Here we can visualize the output of getDaily()</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="resahpe-output-optional">Resahpe output (optional)<a class="anchor" aria-label="anchor" href="#resahpe-output-optional"></a>
+</h3>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Reshape Data for further visualization and analysis</span></span>
+<span><span class="va">Daily_data</span> <span class="op">&lt;-</span> <span class="va">Daily_data</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/gather.html" class="external-link">gather</a></span><span class="op">(</span><span class="op">-</span><span class="va">site_code</span>, key <span class="op">=</span> <span class="st">"key"</span>, value <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Check result</span></span>
+<span><span class="co"># Preview the Results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">Daily_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    site_code   key     value</span></span>
 <span><span class="co">#&gt; 1 DZA89-B:17 tavg1 10.408824</span></span>
@@ -120,25 +116,35 @@ Team</h4>
 <span><span class="co">#&gt; 4 DZA89-B:17 tavg2  8.585295</span></span>
 <span><span class="co">#&gt; 5  IND28::42 tavg2 13.157355</span></span>
 <span><span class="co">#&gt; 6    UKR::16 tavg2 -2.398529</span></span></code></pre></div>
+<p><br> The resulting dataset contains the site codes, variable keys
+(e.g., tavg), and corresponding values for each day. You can now use
+this data for further analysis or visualization. <br></p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="extractwcdata">extractWcdata()<a class="anchor" aria-label="anchor" href="#extractwcdata"></a>
 </h2>
-<p><code><a href="../reference/extractWCdata.html">extractWCdata()</a></code> is an upgraded version of function. It
-allows to extract the worldclim v2.1 with latest updates.</p>
-<p>The function automatically downloads WorldClim 2.1 data within an
-extent of interest based on specified coordinates from the <a href="https://geodata.ucdavis.edu/climate/worldclim/1_4/" class="external-link">Biogeo davis
-repository</a>. When the this later is not available,- check this <a href="https://github.com/rspatial/raster/issues/338" class="external-link">issue</a> for more
+<p><code><a href="../reference/extractWCdata.html">extractWCdata()</a></code> is an upgraded version of
+<code>raster:getData()</code> function. It allows to extract the
+worldclim v2.1 with latest updates. <br> The
+<code><a href="../reference/extractWCdata.html">extractWCdata()</a></code> function automatically downloads WorldClim
+2.1 data within an extent of interest based on specified coordinates
+from the <a href="https://geodata.ucdavis.edu/climate/worldclim/1_4/" class="external-link">Biogeo davis
+repository</a>. When this later is not available,- check this <a href="https://github.com/rspatial/raster/issues/338" class="external-link">issue</a> for more
 details -, it prompts you to download your variables of interest from
 the official website of <a href="https://www.worldclim.org/data/worldclim21.html#bio_10m" class="external-link">worldclim</a>.</p>
-<p>In this case, a worldclim// folder will be created in your working
-directory. So you can either copy the downloaded files to the created
-path folder or use their full path. Further steps should be followed to
-get the final data returned by <code>extractWcdata</code>. Below we
-describe the steps to follow.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<p>In this case, a <code>worldclim/var/</code> folder will be created in
+your working directory. So you can either copy the downloaded
+<code>.tiff</code> files to the created path folder or use their full
+path. Further steps should be followed to get the final data returned by
+<code><a href="../reference/extractWCdata.html">extractWCdata()</a></code>. Below we describe the steps to follow.</p>
+<div class="section level3">
+<h3 id="simulate-raster-files-as-worldclim-files">Simulate raster files as worldclim files<a class="anchor" aria-label="anchor" href="#simulate-raster-files-as-worldclim-files"></a>
+</h3>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rspatial.org/raster" class="external-link">raster</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: sp</span></span>
 <span></span>
 <span><span class="co"># Create two raster layers for tavg and prec</span></span>
 <span><span class="va">tavg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/raster/man/raster.html" class="external-link">raster</a></span><span class="op">(</span>nrows <span class="op">=</span> <span class="fl">10</span>, ncols <span class="op">=</span> <span class="fl">10</span>, xmn <span class="op">=</span> <span class="op">-</span><span class="fl">180</span>, xmx <span class="op">=</span> <span class="fl">180</span>, ymn <span class="op">=</span> <span class="op">-</span><span class="fl">90</span>, ymx <span class="op">=</span> <span class="fl">90</span><span class="op">)</span></span>
@@ -155,9 +161,18 @@ describe the steps to follow.</p>
 <span></span>
 <span><span class="co"># Visualize results</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">clim_stack</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Sites_climate_files/figure-html/unnamed-chunk-3-1.png" width="672"></p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="figure">
+<img src="Sites_climate_files/figure-html/unnamed-chunk-5-1.png" alt="Simulated temperature &amp; precipitation rasters" width="672"><p class="caption">
+Simulated temperature &amp; precipitation rasters
+</p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="simulate-georeferenced-sites">Simulate georeferenced sites<a class="anchor" aria-label="anchor" href="#simulate-georeferenced-sites"></a>
+</h3>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Linking to GEOS 3.11.0, GDAL 3.5.3, PROJ 9.1.0; sf_use_s2() is TRUE</span></span>
 <span></span>
 <span><span class="co"># Define coordinates in a data frame</span></span>
 <span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>site <span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"site1"</span>,<span class="st">"site2"</span><span class="op">)</span> ,long <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">70</span><span class="op">)</span>, lat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">45</span>, <span class="op">-</span><span class="fl">20</span><span class="op">)</span><span class="op">)</span></span>
@@ -175,7 +190,11 @@ describe the steps to follow.</p>
 <span><span class="co">#&gt;    site       geometry</span></span>
 <span><span class="co">#&gt; 1 site1  POINT (10 45)</span></span>
 <span><span class="co">#&gt; 2 site2 POINT (70 -20)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+</div>
+<div class="section level3">
+<h3 id="extract-worldclimat-data">Extract Worldclimat data<a class="anchor" aria-label="anchor" href="#extract-worldclimat-data"></a>
+</h3>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract values from raster stack</span></span>
 <span><span class="va">extracted_values</span> <span class="op">&lt;-</span> <span class="fu">raster</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/extract.html" class="external-link">extract</a></span><span class="op">(</span><span class="va">clim_stack</span>, <span class="va">sf_coords</span><span class="op">)</span></span>
 <span></span>
@@ -193,22 +212,40 @@ describe the steps to follow.</p>
 <span><span class="co">#&gt; 1 site1 26.12282 199.4155  POINT (10 45)</span></span>
 <span><span class="co">#&gt; 2 site2 29.21646 384.3885 POINT (70 -20)</span></span></code></pre></div>
 <p>In this example, we demonstrate how to use this function to extract
-average temperature and precipitaton data for a set of locations. We can
-also choose one or many climatic variables, like the standard 19 bio at
-different resolutions, precipitation, solar radiation and wind
-speed.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code>average temperature = tavg</code> and
+<code>precipitaton = prec</code> data for a set of locations. We can
+also choose one or many climatic variables, like the standard 19 bios at
+different resolutions, precipitation, solar radiation and wind speed.
+<br></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Please run the following code chunk for retireving real data.</span></span>
-<span><span class="co">#' \dontrun{</span></span>
-<span><span class="co">#' long &lt;- seq(-16, 115, length = 3)</span></span>
-<span><span class="co">#' lat &lt;- seq(25, 59, length = 3)</span></span>
-<span><span class="co">#' sf &lt;- expand.grid(long = long, lat = lat)</span></span>
-<span><span class="co">#'</span></span>
-<span><span class="co">#' # Extract data using grid</span></span>
-<span><span class="co">#' sf.df0 &lt;- extractWCdata(sp, long = 'long', lat = 'lat',</span></span>
-<span><span class="co">#'                         var = c('tavg','prec'), res=10)</span></span>
-<span><span class="co">#' }</span></span></code></pre></div>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">icardaFIGSr</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Define longitude and latitude ranges around Morocco</span></span>
+<span><span class="va">long</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">11</span>, <span class="fl">11</span>, length.out <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co"># Longitude range</span></span>
+<span><span class="va">lat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fl">59</span>, length.out <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>   <span class="co"># Latitude range</span></span>
+<span></span>
+<span><span class="co"># Create a grid of coordinates</span></span>
+<span><span class="va">sf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>long <span class="op">=</span> <span class="va">long</span>, lat <span class="op">=</span> <span class="va">lat</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract climate data (WorldClim 2.1) using the grid</span></span>
+<span><span class="va">sf.df0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/extractWCdata.html">extractWCdata</a></span><span class="op">(</span></span>
+<span>  <span class="va">sf</span>,</span>
+<span>  long <span class="op">=</span> <span class="st">'long'</span>,</span>
+<span>  lat <span class="op">=</span> <span class="st">'lat'</span>,</span>
+<span>  var <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'bio'</span><span class="op">)</span>,  <span class="co"># Bioclimatic variables</span></span>
+<span>  res <span class="op">=</span> <span class="fl">2.5</span>        <span class="co"># Spatial resolution</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Preview the extracted data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sf.df0</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Or list the downloaded climate data from worldclim folder</span></span>
+<span><span class="co">## then use them for your analysis.</span></span></code></pre></div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -217,7 +254,7 @@ speed.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Khadija Aziz, Zakaria Kehel, Bancy Ngatia, Khadija Aouzal.</p>
+  <p>Developed by Khadija Aziz, Zakaria Kehel, Bancy Ngatia, Khadija Aouzal, Chafik Analy.</p>
 </div>
 
 <div class="pkgdown-footer-right">

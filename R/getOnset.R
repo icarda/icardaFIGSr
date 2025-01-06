@@ -2,7 +2,7 @@
 #' @description this function Extracts Daily values of climatic variables from remote ICARDA data based on Onset of Planting, it returns a list based on specified climatic variables. Each variable will have 365 values for each day of the (onset) year beginning with planting day.
 #' @param sites character. Names of sites from which to extract data.
 #' @param crop character. Crop code in ICARDA database. See section 'Details' for a list of crops.
-#' @param var character. Climatic variable(s) to be extracted.
+#' @param var character. Climatic variable(s) to be extracted. choices : tavg, prec, rh
 #' @param cv boolean. If \code{TRUE}, returns a data frame with coefficient of variation for each variable for each day of the onset year. Default: FALSE.
 #' @return An object of class "data.frame" with specified climatic variables for names in \code{sites}.
 #'

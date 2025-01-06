@@ -9,16 +9,16 @@
 #' @return An object of class "data.frame" with specified climatic variables for coordinates in \code{sites}.
 #' @details A grid can be created with any particular coordinates and used as input for \code{sites} (see section 'Examples'). \code{extractWCdata} will use the given coordinates to extract data from the WorldClim 2.1 database.
 #' The extracted data will most likely contain NAs for sites where climate data is not available. These should be removed or imputed before using the data to make predictions.
-#' @author Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal, 
+#' @author Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal, Chafik Analy
 #' @examples
 #' \dontrun{
 #'  # Create grid
-#'  sp1 <- seq(-16, 115, length = 3)
-#'  sp2 <- seq(25, 59, length = 3)
-#'  sp <- expand.grid(x = sp1, y = sp2)
+#'  long <- seq(-16, 115, length = 3)
+#'  lat <- seq(25, 59, length = 3)
+#'  sf <- expand.grid(x = sp1, y = sp2)
 #' 
 #'  # Extract data using grid
-#'  sp.df0 <- extractWCdata(sp, long = 'long', lat = 'lat', var = 'bio')
+#'  sp.df0 <- extractWCdata(sf, long = 'long', lat = 'lat', var = 'bio')
 #'  sp.df <- na.omit(sp.df0)
 #'  }
 #' @name extractWCdata
@@ -30,7 +30,7 @@
 extractWCdata <- function(sites, long, lat, var, res = 2.5) {
   
   # Increase timeout to 10 minutes (600 seconds)
-  options(timeout = max(300, getOption("timeout")))
+  options(timeout = max(600, getOption("timeout")))
   
   # Validate 'sites' data frame
   if (!is.data.frame(sites) || !all(c(long, lat) %in% colnames(sites))) {

@@ -89,25 +89,25 @@ knn.ST_S <- icardaFIGSr::tuneTrain(
 
 let's explore the results.
 
-```{r}
+```{r }
 # Class probabilities table
 knn.ST_S$`Class Probabilities`
 ```
 
 
-```{r}
+```{r ,fig.cap = "Class probabilities ST_S knn"}
 ## Plot class probabilities
 knn.ST_S$`Class Probabilities Plot`
 
 ```
 
-```{r}
+```{r ,fig.cap = "Roc plot ST_S knn"}
 # ROC plot
 knn.ST_S$ROC_Plot
 
 ```
 
-```{r}
+```{r ,fig.cap = "Variable Importance ST_S knn"}
 # Variable importance
 knn.ST_S$Variableimportance
 
@@ -256,18 +256,18 @@ svm.DHE <- icardaFIGSr::tuneTrain(data = DurumWheatDHEWC_sample,
                       repeats = 3)
 ```
 
-```{r}
+```{r ,fig.cap = "Variable importance DHE regression"}
 svm.DHE$VariableImportance
 
 ```
 
-```{r}
- svm.DHE$Quality_metrics
- svm.DHE$`Predicted vs Actual Plot`
+```{r ,fig.cap = "Predicted vs Actual DHE regression"}
+svm.DHE$Quality_metrics
+svm.DHE$`Predicted vs Actual Plot`
 
 ```
 
-```{r}
+```{r ,fig.cap = "Residuals vs predicted DHE regression"}
 svm.DHE$`Residuals Vs. Predicted Plot`
 
 ```
@@ -314,7 +314,7 @@ DurumWheatDHEWC_sample%>%
 ```
 
 
-```{r eval=FALSE}
+```{r ,eval=FALSE}
 
 ## Not run:
 
@@ -335,7 +335,7 @@ rf.DHE_class
 
 ## splitData()
 
-```{r eval=FALSE}
+```{r}
 
 # Subset septoriaDurumWC where column names having 3, ex tmin3, prec13
 septoriaDurumWC_subset <- icardaFIGSr::septoriaDurumWC|>
@@ -351,7 +351,7 @@ names(septoriaDurumWC_subset_split)
 
 ## getMetrics()
 
-```{r eval=FALSE}
+```{r fig.cap = "getMetrics outputs for ST_S knn"}
 
 # Call the ST_S knn model fitted in tunTrain function section
 
@@ -371,7 +371,7 @@ metrics.knn.ST_S
 Please run below code chunk to test `getMetricsPCA()` on any model rutrned by `tuneTrain()`.
 <br>
 
-```{r eval=FALSE}
+```{r ,eval=FALSE}
 
 ## Run Binary classification of ST_S with balanced data using random forest
 rf.ST_S <- icardaFIGSr::tuneTrain(
@@ -417,23 +417,22 @@ metrics.all[2,1]
 
 ## varimpPred()
 
-
-`varimpPred()` returns classes probabilities
+`varimpPred()` returns classes probabilities and variables importance plots and tables.
 
 ```{r eval=FALSE}
 # Calculate variable importance for classification model
- 
-# data("septoriaDurumWC")
-# 
-# septoriaDurumWC <- as.data.frame(septoriaDurumWC)
-# 
-# knn.varimp<- varimpPred(newdata = knn.ST_S$`Test Data`,
-#                                      y='ST_S',
-#                                      model = knn.ST_S$Tuning, 
-#                                      positive = "R",
-#                                      auc = TRUE, predict = TRUE, top = 20)
-# 
-# knn.varimp
+
+data("septoriaDurumWC")
+
+septoriaDurumWC <- as.data.frame(septoriaDurumWC)
+
+knn.varimp<- varimpPred(newdata = knn.ST_S$`Test Data`,
+                                      y='ST_S',
+                                      model = knn.ST_S$Tuning,
+                                      positive = "R",
+                                      auc = TRUE, predict = TRUE)
+
+knn.varimp
 ```
 
 

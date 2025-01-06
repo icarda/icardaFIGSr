@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">icardaFIGSr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,7 @@
                         <h4 data-toc-skip class="author">IcardaFIGSr
 Team</h4>
             
-            <h4 data-toc-skip class="date">2025-01-02</h4>
+            <h4 data-toc-skip class="date">2025-01-03</h4>
       
 
       <div class="d-none name"><code>ML_Workflows.Rmd</code></div>
@@ -381,15 +381,27 @@ climatic conditions.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">## Plot class probabilities</span></span>
 <span><span class="va">knn.ST_S</span><span class="op">$</span><span class="va">`Class Probabilities Plot`</span></span></code></pre></div>
-<p><img src="ML_Workflows_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
+<div class="figure">
+<img src="ML_Workflows_files/figure-html/unnamed-chunk-7-1.png" alt="Class probabilities ST_S knn" width="672"><p class="caption">
+Class probabilities ST_S knn
+</p>
+</div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ROC plot</span></span>
 <span><span class="va">knn.ST_S</span><span class="op">$</span><span class="va">ROC_Plot</span></span></code></pre></div>
-<p><img src="ML_Workflows_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
+<div class="figure">
+<img src="ML_Workflows_files/figure-html/unnamed-chunk-8-1.png" alt="Roc plot ST_S knn" width="672"><p class="caption">
+Roc plot ST_S knn
+</p>
+</div>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Variable importance</span></span>
 <span><span class="va">knn.ST_S</span><span class="op">$</span><span class="va">Variableimportance</span></span></code></pre></div>
-<p><img src="ML_Workflows_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
+<div class="figure">
+<img src="ML_Workflows_files/figure-html/unnamed-chunk-9-1.png" alt="Variable Importance ST_S knn" width="672"><p class="caption">
+Variable Importance ST_S knn
+</p>
+</div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Model quality</span></span>
 <span><span class="va">knn.ST_S</span><span class="op">$</span><span class="va">`Model quality`</span></span>
@@ -1345,17 +1357,29 @@ timelines &amp; locations.</p>
 <span><span class="co">#&gt; The final value used for the model was cost = 0.5.</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">svm.DHE</span><span class="op">$</span><span class="va">VariableImportance</span></span></code></pre></div>
-<p><img src="ML_Workflows_files/figure-html/unnamed-chunk-21-1.png" width="672"></p>
+<div class="figure">
+<img src="ML_Workflows_files/figure-html/unnamed-chunk-21-1.png" alt="Variable importance DHE regression" width="672"><p class="caption">
+Variable importance DHE regression
+</p>
+</div>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span> <span class="va">svm.DHE</span><span class="op">$</span><span class="va">Quality_metrics</span></span>
+<code class="sourceCode R"><span><span class="va">svm.DHE</span><span class="op">$</span><span class="va">Quality_metrics</span></span>
 <span><span class="co">#&gt;      RMSE  Rsquared       MAE </span></span>
 <span><span class="co">#&gt; 4.4294787 0.3721135 3.5262731</span></span>
-<span> <span class="va">svm.DHE</span><span class="op">$</span><span class="va">`Predicted vs Actual Plot`</span></span>
+<span><span class="va">svm.DHE</span><span class="op">$</span><span class="va">`Predicted vs Actual Plot`</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="ML_Workflows_files/figure-html/unnamed-chunk-22-1.png" width="672"></p>
+<div class="figure">
+<img src="ML_Workflows_files/figure-html/unnamed-chunk-22-1.png" alt="Predicted vs Actual DHE regression" width="672"><p class="caption">
+Predicted vs Actual DHE regression
+</p>
+</div>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">svm.DHE</span><span class="op">$</span><span class="va">`Residuals Vs. Predicted Plot`</span></span></code></pre></div>
-<p><img src="ML_Workflows_files/figure-html/unnamed-chunk-23-1.png" width="672"></p>
+<div class="figure">
+<img src="ML_Workflows_files/figure-html/unnamed-chunk-23-1.png" alt="Residuals vs predicted DHE regression" width="672"><p class="caption">
+Residuals vs predicted DHE regression
+</p>
+</div>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">svm.DHE</span><span class="op">$</span><span class="va">Training</span></span>
 <span><span class="co">#&gt; Support Vector Machines with Linear Kernel </span></span>
@@ -1473,7 +1497,8 @@ to longer growing seasons or late-season conditions. <br></p>
 <span>                        seed <span class="op">=</span> <span class="fl">123</span>, y<span class="op">=</span><span class="st">"ST_S"</span>, p<span class="op">=</span><span class="fl">0.7</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check results</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">septoriaDurumWC_subset_split</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">septoriaDurumWC_subset_split</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "trainset" "testset"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="getmetrics">getMetrics()<a class="anchor" aria-label="anchor" href="#getmetrics"></a>
@@ -1489,7 +1514,21 @@ to longer growing seasons or late-season conditions. <br></p>
 <span><span class="va">metrics.knn.ST_S</span> <span class="op">&lt;-</span> <span class="fu">icardaFIGSr</span><span class="fu">::</span><span class="fu"><a href="../reference/getMetrics.html">getMetrics</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">data.test</span><span class="op">$</span><span class="va">ST_S</span>,</span>
 <span>                                       yhat <span class="op">=</span> <span class="va">pred.ST_S</span>, classtype <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">metrics.knn.ST_S</span></span></code></pre></div>
+<span><span class="va">metrics.knn.ST_S</span></span>
+<span><span class="co">#&gt; $Metrics</span></span>
+<span><span class="co">#&gt;                            Metrics</span></span>
+<span><span class="co">#&gt; Accuracy                     0.729</span></span>
+<span><span class="co">#&gt; 95% CI              (0.597, 0.836)</span></span>
+<span><span class="co">#&gt; No Information Rate          0.525</span></span>
+<span><span class="co">#&gt; P-Value [Acc &gt; NIR]     0.00113022</span></span>
+<span><span class="co">#&gt; Kappa                        0.458</span></span>
+<span><span class="co">#&gt; Sensitivity                   0.71</span></span>
+<span><span class="co">#&gt; Specificity                   0.75</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $CM</span></span>
+<span><span class="co">#&gt;    R  S</span></span>
+<span><span class="co">#&gt; R 22  7</span></span>
+<span><span class="co">#&gt; S  9 21</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="getmetricspca">getMetricsPCA()<a class="anchor" aria-label="anchor" href="#getmetricspca"></a>
@@ -1536,21 +1575,22 @@ on any model rutrned by <code><a href="../reference/tuneTrain.html">tuneTrain()<
 <div class="section level2">
 <h2 id="varimppred">varimpPred()<a class="anchor" aria-label="anchor" href="#varimppred"></a>
 </h2>
-<p><code><a href="../reference/varimpPred.html">varimpPred()</a></code> returns classes probabilities</p>
+<p><code><a href="../reference/varimpPred.html">varimpPred()</a></code> returns classes probabilities and variables
+importance plots and tables.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Calculate variable importance for classification model</span></span>
-<span> </span>
-<span><span class="co"># data("septoriaDurumWC")</span></span>
-<span><span class="co"># </span></span>
-<span><span class="co"># septoriaDurumWC &lt;- as.data.frame(septoriaDurumWC)</span></span>
-<span><span class="co"># </span></span>
-<span><span class="co"># knn.varimp&lt;- varimpPred(newdata = knn.ST_S$`Test Data`,</span></span>
-<span><span class="co">#                                      y='ST_S',</span></span>
-<span><span class="co">#                                      model = knn.ST_S$Tuning, </span></span>
-<span><span class="co">#                                      positive = "R",</span></span>
-<span><span class="co">#                                      auc = TRUE, predict = TRUE, top = 20)</span></span>
-<span><span class="co"># </span></span>
-<span><span class="co"># knn.varimp</span></span></code></pre></div>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"septoriaDurumWC"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">septoriaDurumWC</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">septoriaDurumWC</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">knn.varimp</span><span class="op">&lt;-</span> <span class="fu"><a href="../reference/varimpPred.html">varimpPred</a></span><span class="op">(</span>newdata <span class="op">=</span> <span class="va">knn.ST_S</span><span class="op">$</span><span class="va">`Test Data`</span>,</span>
+<span>                                      y<span class="op">=</span><span class="st">'ST_S'</span>,</span>
+<span>                                      model <span class="op">=</span> <span class="va">knn.ST_S</span><span class="op">$</span><span class="va">Tuning</span>,</span>
+<span>                                      positive <span class="op">=</span> <span class="st">"R"</span>,</span>
+<span>                                      auc <span class="op">=</span> <span class="cn">TRUE</span>, predict <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">knn.varimp</span></span></code></pre></div>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># # Calculate variable importance and obtain class probabilities</span></span>
 <span><span class="co"># # with highest measure</span></span>
@@ -1572,7 +1612,7 @@ on any model rutrned by <code><a href="../reference/tuneTrain.html">tuneTrain()<
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Khadija Aziz, Zakaria Kehel, Bancy Ngatia, Khadija Aouzal.</p>
+  <p>Developed by Khadija Aziz, Zakaria Kehel, Bancy Ngatia, Khadija Aouzal, Chafik Analy.</p>
 </div>
 
 <div class="pkgdown-footer-right">

@@ -31,7 +31,7 @@
 #' }
 #'
 #'  A list of available crops to use as input for \code{crop} can also be obtained from ICARDA's online server using \code{\link[icardaFIGSr]{getCrops}}.
-#' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
+#' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar, Chafik Analy
 #' @examples
 #' \dontrun{
 #'  # Get traits for bread wheat

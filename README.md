@@ -110,7 +110,10 @@ This project was developed with contributions from:
 <br>
 - **Zakaria Kehel** (*Maintainer and Author*) 
 - **Khadija Aziz** (*Author*)  
-- **Bancy Ngatia**, **Khadija Aouzal**, **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar**, **Chafik Analy** (*Contributors*)
+- **Chafik Analy** (*Author*)
+- **Khadija Aouzal** (*Author*),
+- **Bancy Ngatia** (*Author*),
+- **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar** (*Contributors*)
 
 ## Contact
 

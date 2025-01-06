@@ -76,9 +76,9 @@ Imbalance handling methods "up" and "down" use ,respectively, upsample() and dow
 \dontrun{
 ## Reading local test datasets
 
-data(DurumWheatDHEWC)
-data(BarleyRNOWC)
-data(septoriaDurumWC)
+data("DurumWheatDHEWC")
+data("BarleyRNOWC")
+data("septoriaDurumWC")
 
 ## Binary classification of ST_S with balanced data
 rf.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),

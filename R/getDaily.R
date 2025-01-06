@@ -35,7 +35,7 @@
 getDaily <- function(sites, var, cv = FALSE) {
   
   # Set high timeout for value in seconds to load data
-  options(timeout = max(1800, getOption("timeout")))
+  options(timeout = max(600, getOption("timeout")))
   
   # Check if cv is valid
   if (!is.logical(cv)) {

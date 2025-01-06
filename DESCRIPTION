@@ -1,7 +1,7 @@
 Package: icardaFIGSr
 Type: Package
 Title: Subsetting using Focused Identification of the Germplasm Strategy (FIGS)
-Version: 1.0.3
+Version: 1.0.2
 Authors@R:
   c(person(given = "Khadija",
            family = "Aziz",
@@ -17,6 +17,9 @@ Authors@R:
     person(given = "Khadija",
            family = "Aouzal",
            role = "aut"),
+    person(given = "Chafik",
+           family = "Analy",
+           role = c("aut","ctb")),
     person(given = "Zainab",
            family = "Azough",
            role = "ctb"),
@@ -25,9 +28,6 @@ Authors@R:
            role = "ctb"),
     person(given = "Fawzy",
            family = "Nawar",
-           role = "ctb"),
-    person(given = "Chafik",
-           family = "Analy",
            role = "ctb"))
 Description: The icardaFIGSr package provides tools for running the Focused Identification of the Germplasm Strategy (FIGS).
     This strategy helps create optimal subsets from genebank collections for research and breeding purposes.
@@ -46,6 +46,7 @@ Imports:
     reshape2,
     raster,
     sf,
+    pillar,
     leaflet,
     pROC,
     plotROC

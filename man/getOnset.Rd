@@ -11,7 +11,7 @@ getOnset(sites, crop, var, cv = FALSE)
 
 \item{crop}{character. Crop code in ICARDA database. See section 'Details' for a list of crops.}
 
-\item{var}{character. Climatic variable(s) to be extracted.}
+\item{var}{character. Climatic variable(s) to be extracted. choices : tavg, prec, rh}
 
 \item{cv}{boolean. If \code{TRUE}, returns a data frame with coefficient of variation for each variable for each day of the onset year. Default: FALSE.}
 }

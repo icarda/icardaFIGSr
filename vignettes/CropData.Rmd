@@ -26,7 +26,6 @@ knitr::opts_chunk$set(
 
 
 ```{r}
-library(icardaFIGSr)
 icardaFIGSr::getCrops()
 ```
 
@@ -102,7 +101,10 @@ head(BreadWheat)
 <br> **SITE:** Name of the collection site.
 <br> **CollectionYear:** Year the sample was collected.
 <br>
-
+<br>
+To get real accessions data, you need credentials keys : `username` and `password`, usually provided by `GRS-ICARDA` department. Below we simulate the standard structure of some barley accessions data.
+<br>
+<br>
 ```{r}
 # Generate the dataset
 Barley_Acessions <- data.frame(
@@ -129,7 +131,7 @@ head(Barley_Acessions)
 
 ```
 
-The output data can be used to explore available accessions for a given crop of interest. To learn more about these accessions, we can visualize the counts accross countries and their spatial distribution using \link[ggplot2:ggplot]{ggplot} or \link[leaflet:leaflet]{leaflet} functions. To learn more about their history, we can inspect data over time using the \code{collectionYear} column. It can also be used to generate spatio-temporal animations by leveraging R \link[shiny]{shiny} capabilities. Additionally, and most importantly, these spatially referenced accessions can be linked to traits data sets by \code{IG} to conduct spatial analysis at different scales, including but not limited to, conducting spatial autocorrelation for a specific trait, spatial clustering given multiple traits, or building Machine learning models, etc. Some of these examples will be discussed in the following sections.
+The output data can be used to explore available accessions for a given crop of interest. To learn more about these accessions, we can visualize the counts across countries and their spatial distribution using `ggplot2:ggplot()` or `leaflet:leaflet()` functions. To learn more about their history, we can inspect data over time using the `collectionYear` column. It can also be used to generate spatio-temporal animations by leveraging R `shiny()` capabilities. Additionally, and most importantly, these spatially referenced accessions can be linked to traits data sets by `IG` to conduct spatial analysis at different scales, including but not limited to, conducting spatial autocorrelation for a specific trait, spatial clustering given multiple traits, or building Machine learning models, etc. Some of these examples will be discussed in the following sections. With the appropriate credentials, please run code below.
 <br>
 
 ```{r}
@@ -142,9 +144,9 @@ The output data can be used to explore available accessions for a given crop of 
 
 ```
 
-Here we use the \link[leaflet]{leaflet} package to visualize the simulated accessions count.
+Here we use the `leaflet()` package to visualize the simulated accessions count.
 
-```{r}
+```{r ,fig.cap = "Accessions location counts"}
 library(leaflet)
 
 leaflet(Barley_Acessions)%>%
@@ -155,9 +157,9 @@ leaflet(Barley_Acessions)%>%
 
 ```
 
-Here we explore the count of data over time and by country using \link[ggplot2]{ggplot2} package.
+Here we explore the count of data over time and by country using `ggplot2::ggplot2()` package.
 
-```{r}
+```{r ,fig.cap = "Accessions count over time"}
 library(ggplot2)
 
 ggplot(data = Barley_Acessions, aes(x=CollectionYear, fill=Country))+
@@ -167,10 +169,13 @@ ggplot(data = Barley_Acessions, aes(x=CollectionYear, fill=Country))+
 
 ## mapAccessions()
 
-`mapAccession()` returns an interactive map using accessions coordinates and interest variable `y`. This later can be numeric or character variable. This function allow to map accessions locations based on a given criteria specified `y` argument. In this example, we use `sodicityIndex` and `PopulationType` from the `FIGS` dataset. This dataset is designed to assist in studies on sodicity resistance in wheat populations. It integrates site-level information, including soil salinity and sodicity measures (ESP and ECE), altitude, and climatic variables. The sodicity index and category offer a consolidated view of the sodicity characteristics of some sample sites.
-
+`mapAccessions()` returns an interactive map using accessions coordinates and interest variable `y`. This later can be numeric or character variable. This function allow to map accessions locations based on a given criteria specified `y` argument. In this example, we use `sodicityIndex` and `PopulationType` from the `FIGS` dataset.
+<br>
+This dataset is designed to assist in studies on sodicity resistance in wheat populations. It integrates site-level information, including soil salinity and sodicity measures (ESP and ECE), altitude, and climatic variables. The sodicity index and category offer a consolidated view of the sodicity characteristics of some sample sites. More details about the data source are desribed under `icardaFIGSr::FIGS` references.
+<br>
 <br>
 
+### Accessions with/without NA's
 ```{r}
 FIGS <- icardaFIGSr::FIGS
 
@@ -179,7 +184,7 @@ icardaFIGSr::mapAccessions(df = FIGS,
                            long = "Longitude", lat = "Latitude")
 ```
 
-
+### Accessions by SodocityIndex
 ```{r}
 # Map plotting locations of accessions with points coloured 
 # based on a gradient scale of SodicityIndex values
@@ -187,7 +192,7 @@ icardaFIGSr::mapAccessions(FIGS, long = "Longitude",
                            lat = "Latitude", y = "SodicityIndex")
 ```
 
-
+### Accessions by PopulationType
 ```{r}
 # Map plotting locations of accessions with points
 # coloured based on levels of y 
@@ -198,13 +203,14 @@ icardaFIGSr::mapAccessions(FIGS, long = "Longitude",
 
 ## getTraitsData()
 
-`getTraitsData()` function returns a data frame that describes the available accessions data and their corresponding measurements of available traits. It can take multiple accessions \code{IGs} ,but only one \code{traitID} at a time. Thus, we can loop through Trait IDs for the provided group of accessions. 
+`getTraitsData()` function returns a data frame that describes the available accessions data and their corresponding measurements of available traits. It can take multiple accessions `IGs` ,but only one `traitID` at a time. Thus, we can loop through Trait IDs for the provided group of accessions. 
 <br>
-The output is a list of datasets, one for each trait. They can be used in many ways to highlight valuable insights to support genetic resources conservation efforts for available crops. One way to do this, is to combine extracted traits, \code{YEAR} and \code{IGs} into one dataframe by looping through the list. Then, use the resulting data frame to run multivariate analysis. To add spatial context to the resulting dataframe `Accessions_Traits` dataset, we can merge it with the georeferenced accessions returned by the `getAcessions` function by \code{IGs} for the same crop.
+The output is a list of datasets, one for each trait. They can be used in many ways to highlight valuable insights to support genetic resources conservation efforts for available crops. One way to do this, is to combine extracted traits, `YEAR` and `IGs` into one dataframe by looping through the list. Then, use the resulting data frame to run multivariate analysis. To add spatial context to the resulting dataframe `Accessions_Traits` dataset, we can merge it with the georeferenced accessions returned by the `getAcessions` function by `IGs` for the same crop.
 <br>
 Below we describe this process from data retrieval to final data set.
+<br>
 
-```{r , eval=FALSE }
+```{r ,eval=FALSE }
 
 # Load package
 library(tidyr)
@@ -298,9 +304,9 @@ head(Barley_Accessions_Traits)
 
 `getOnset` function returns a list of 2 main datasets. The first dataset contains the site's code as the first column and 365 other columns each corresponding to the day of the year of specified climate variables starting from onset date. When `cv=TRUE`,a third dataset is added to the final output which contains the `coefficient of variation` of the interest variable.
 <br>
-Below, we use some site codes from durumWC dataset, and specify ICDW (durum wheat) as crop code (use `getCrops` function to list available cropCodes for your crop of interest), then specify the appropriate climate variable : tavg, prec, rh (solar radiation). Please refer to documentation using ?getOnset for more details.
+Below, we use some site codes from durumWC dataset, and specify ICDW (durum wheat) as crop code (use `getCrops` function to list available cropCodes for your crop of interest), then specify the appropriate climate variable : tavg, prec, rh (relative humidity). Please refer to documentation using ?getOnset for more details.
 <br>
-
+<br>
 ```{r}
 
 # call durumWC dataset
@@ -312,7 +318,7 @@ durumWC <- durumWC|>dplyr::ungroup()
 Sites <- as.character(unique(durumWC$SiteCode))
 
 # Get onset data
-onset <- getOnset(sites = Sites[1:2], crop = 'ICDW',
+onset <- icardaFIGSr::getOnset(sites = Sites[1:2], crop = 'ICDW',
                      var = c('tavg'), cv = T)
 
 # Get data frame with climatic variables from the list object 
@@ -327,13 +333,14 @@ onset.climcv <- onset[3]
 
 ## getGrowthPeriod()
 
-`getGrowthPeriod()` function returns a list of three dataframes.
-<br>
-**Growth_Period :** contains `sitecode` (referring to the available sites among those specified in the sitecode argument), the second column is the `onset` (in days of the year, example : onset=150 means that the onset starts around Mai-June). The remaining columns represent the lengths of `growth stages` (expressed in days). The sum of these growth stages are equal to the last column, called Cycle. 
-<br>
-The growth stages are named following abbreviation codes for each crop. Below is a glossary of used growth stage codes and their corresponding names. At the output level, the growth stages abbreviated names prefix "L" stands for length.
+`getGrowthPeriod()` function returns a list of three dataframes. Multiple examples are provided below in this section to describe each dataset output for selected crops.
 <br>
 
+**Growth_Period :** contains `sitecode` (referring to the available sites among those specified in the sitecode argument), the second column is the `onset` (in days of the year, example : onset=150 means that the onset starts around Mai-June). The remaining columns represent the lengths of `growth stages` (expressed in days). The sum of these growth stages are equal to the last column, called Cycle. 
+<br>
+The growth stages are named following abbreviation codes for each crop. Below is a glossary of used growth stage codes and their corresponding names. At the output level, the growth stages abbreviated names prefix "L" stands for length. for more details, please refer to `getGrowthPeriod()` documentation.
+<br>
+<br>
 ```{r}
 
 growth_stages_codes <-  data.frame(

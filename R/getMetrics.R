@@ -9,7 +9,7 @@
 #' The function relies on the \code{caret} package to obtain the confusion matrix from which performance measures are extracted. It can be run for several algorithms, and the results combined into one data frame for easier comparison (see section 'Examples').
 #'
 #' Predictions have to be obtained beforehand and used as input for \code{yhat}. The \code{predict.train} function in \code{caret} should be run without argument \code{type} when obtaining the predictions.
-#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz
+#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
 #' @examples
 #' \dontrun{
 #'# Obtain predictions from previous models

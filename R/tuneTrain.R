@@ -69,15 +69,15 @@
 #' 
 #' # Create DHE Classes from DurumWheatDHEWC dataset
 #' 
-#' DurumWheatDHEWC$DHE <- ifelse(DurumWheatDHEWC$DHE <=172, "1", 
+#' DurumWheatDHEWC$DHE_Class <- ifelse(DurumWheatDHEWC$DHE <=172, "1", 
 #'                                ifelse(DurumWheatDHEWC$DHE <= 180, "2", 
 #'                                       "3"))
 #'                                        
-#' DurumWheatDHEWC$DHE <- factor(DurumWheatDHEWC$DHE)
+#' DurumWheatDHEWC$DHE_Class <- factor(DurumWheatDHEWC$DHE_Class)
 #'
 #' Run Classification
 #' rf.DHE.Classes <- tuneTrain(data = DurumWheatDHEWC,
-#'                              y =  'DHE',
+#'                              y =  'DHE_Class',
 #'                              method = 'rf',
 #'                              summary = multiClassSummary,
 #'                              imbalanceMethod ="up",
