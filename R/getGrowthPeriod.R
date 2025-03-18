@@ -1,8 +1,8 @@
 
-#' @title Calculating Growing Degree Days and Lengths of Growth Stages for Various Crops Using Onset Data from ICARDA's Database
+#' @title Calculating Growing Degree Days and Lengths of Growth Stages for Various Crops Using Onset Data from ICARDA's Genebank Database
 #' @description Calculates growing degree days (GDD) as well as cumulative GDD, and returns a list of various data frames based on specified arguments.
 #' @param sitecode expression. Vector with names of sites from which to extract onset data.
-#' @param crop character. Type of crop in ICARDA database. See section 'Details' for crops which have calculations available.
+#' @param crop character. Type of crop in ICARDA Genebank database. See section 'Details' for crops which have calculations available.
 #' @param base integer. Minimum temperature constraint for the crop.
 #' @param max integer. Maximum temperature constraint for the crop.
 #' @param gdd boolean. If \code{TRUE}, returns a data frame containing calculated GDD and accumulated GDD together with climatic variables used for the calculations. Default: FALSE.
@@ -111,13 +111,11 @@ getGrowthPeriod <- function(sitecode, crop, base, max, gdd = FALSE) {
       mutate(cumgdd = cumsum(gdd), DAP = row_number())
   }
   
-  data5 <- prepareGDD(tempdata, base, tminvars, tmaxvars) |>
+  growth_period <- prepareGDD(tempdata, base, tminvars, tmaxvars) |>
     left_join(phenodata, by = "sitecode")
   
-  print(glimpse(data5))
-  
   # Check if sitecode data is available after merging
-  if (nrow(data5) == 0) {
+  if (nrow(growth_period) == 0) {
     stop("No matching data found for the specified site names. Please verify the site names and try again.")
   }
   
@@ -143,11 +141,17 @@ getGrowthPeriod <- function(sitecode, crop, base, max, gdd = FALSE) {
       stage_df <- data |>
         group_by(sitecode) |>
         slice(which.min(abs(cumgdd - cumgdd_values[i])))
+      
+      stage_df[[stage_names[i]]] <- ifelse((stage_df$DAP + stage_df$onset) > 365,
+                                           (stage_df$DAP + stage_df$onset) - 365, 
+                                           stage_df$DAP + stage_df$onset)
+      
       if (nrow(stage_df) == 0) {
         warning(paste("No data found for stage:", stage_names[i], "with threshold:", cumgdd_values[i]))
         return(NULL)
       }
-      setNames(stage_df[, c("sitecode", "onset", "DAP")], c("sitecode", "onset", stage_names[i]))
+      
+      stage_df[, c("sitecode", "onset", stage_names[i])]
     })
     results <- results[!sapply(results, is.null)]  # Remove empty results
     if (length(results) == 0) stop("No data available for any growth stage.")
@@ -155,24 +159,38 @@ getGrowthPeriod <- function(sitecode, crop, base, max, gdd = FALSE) {
   }
   
   # Validate crop thresholds
-  if (any(thresholds[[crop]] > max(data5$cumgdd, na.rm = TRUE))) {
+  if (any(thresholds[[crop]] > max(growth_period$cumgdd, na.rm = TRUE))) {
     stop("Threshold values exceed the maximum cumgdd in the data.")
   }
   
-  stages <- calculateStages(data5, thresholds[[crop]], stage_names[[crop]])
+  stages <- calculateStages(growth_period, thresholds[[crop]], stage_names[[crop]])
   
   # Compute durations and cycles
-  stages <- stages |>
-    mutate(across(-c(sitecode, onset), ~ ifelse(.x - onset < 0, .x - onset + 365, .x - onset))) |>
-    mutate(Cycle = rowSums(across(-c(sitecode, onset))))
+  onset_and_stages <- data.frame(stage = names(stages)[-1])
   
-  data5 <- left_join(data5, stages |> select(sitecode, Cycle), by = "sitecode")
-  dataCycle <- filter(data5, DAP <= Cycle)
+  get_stage_length <- function(data, x, cur_column){
+    previous_stages <- onset_and_stages |> 
+      mutate(previous_stage=lag(stage)) |>
+      filter(stage==cur_column)
+    prev_stage <- previous_stages[["previous_stage"]]
+    stage_length <- ifelse(x - data[[prev_stage]] < 0,
+                           x - data[[prev_stage]] + 365,
+                           x - data[[prev_stage]])
+    return(stage_length)
+  }
   
-  data7 <- dataCycle |> select(sitecode, tmin, tmax, gdd, cumgdd, DAP)
+  stages_lengths <- stages |> mutate(across(-c(sitecode, onset), 
+                                            ~ get_stage_length(.data, .x, cur_column()), 
+                                            .names = "{.col}_length")) |>
+    mutate(Cycle = rowSums(across(ends_with("_length"))))
   
-  list.df1 <- list(Growth_Period = stages, Onset_Data = phenodata)
-  list.df2 <- list(Growth_Period = stages, Onset_Data = phenodata, Growing_Degree_Days = data7)
+  growth_period <- left_join(growth_period, stages_lengths |> select(sitecode, Cycle), by = "sitecode")
+  dataCycle <- filter(growth_period, DAP <= Cycle)
+  
+  growing_degree_days <- dataCycle |> select(sitecode, tmin, tmax, gdd, cumgdd, DAP)
+  
+  list.df1 <- list(Growth_Period = stages_lengths, Onset_Data = phenodata)
+  list.df2 <- list(Growth_Period = stages_lengths, Onset_Data = phenodata, Growing_Degree_Days = growing_degree_days)
   
   if (gdd) return(list.df2) else return(list.df1)
 }
