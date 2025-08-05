@@ -1,15 +1,15 @@
 # icardaFIGSr: A Toolkit for Focused Identification of Germplasm Strategy (FIGS)
 
-[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/icardaFIGSr)](https://CRAN.R-project.org/package=icardaFIGSr)  
-[![R-CMD-check](https://github.com/Analychaf/icardaFIGSr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Analychaf/icardaFIGSr/actions/workflows/R-CMD-check.yaml)
+[![CRAN_Status_Badge](https://www.r-pkg.org/badges/version/icardaFIGSr)](https://CRAN.R-project.org/package=icardaFIGSr)
+[![R-CMD-check](https://badges.cranchecks.info/summary/icardaFIGSr.svg)](https://cran.r-project.org/web/checks/check_results_icardaFIGSr.html)
 
 ## Overview
 
-The `icardaFIGSr` package provides tools for applying the Focused Identification of Germplasm Strategy (FIGS) to genebank data. With FIGS, users can subset collections efficiently to identify promising accessions based on traits, environmental data, and statistical workflows. This package is designed to support researchers and genebank managers in the identification of targeted germplasm subsets for plant breeding, research & developpement, and conservation purposes.
+The `icardaFIGSr` package provides tools for applying the Focused Identification of Germplasm Strategy (FIGS) to plant genetic resources data. With FIGS, users can subset collections efficiently to identify promising accessions based on traits, environmental data, and statistical workflows. This package is designed to support researchers and genebank managers in the identification of targeted germplasm subsets for plant breeding, research & developpement, and conservation purposes.
 
 ## Features
 
-- **Data Management**:
+- **Data Retrieval**:
   - Access and preprocess genebank and environmental datasets.
   - Handle climatic data and crop-specific parameters effectively.
 
@@ -18,12 +18,8 @@ The `icardaFIGSr` package provides tools for applying the Focused Identification
   - Generate variable importance metrics and predictions.
   - Evaluate model performance using tools like ROC curves and confusion matrices.
 
-- **Visualization**:
-  - Create intuitive plots for climatic and phenotypic data.
-  - Explore spatial and statistical patterns in genebank collections.
-
 - **Built-in Datasets**:
-  - Access preloaded datasets such as `DurumWheatDHEWC`, `BarleyRNOWC`, and `FIGS` subsets.
+  - Access preloaded datasets such as `DurumWheatDHEWC`, `BarleyRNOWC`, and `FIGS` subsets, among others.
 
 ## Installation
 
@@ -36,7 +32,7 @@ install.packages("icardaFIGSr")
 Or, install the development version from GitHub:
 
 ```R
-devtools::install_github("Analychaf/icardaFIGSr")
+devtools::install_github("icarda/icardaFIGSr")
 ```
 
 ## Getting Started
@@ -56,39 +52,45 @@ data("DurumWheatDHEWC")
 head(DurumWheatDHEWC)
 ```
 
-#### 2. Generate Variable Importance
+#### 2. Model Training and Variable Importance
 
 ```R
-# Load data and train a classification model
-model <- tuneTrain(data = DurumWheatDHEWC, y = 'DHE', method = 'rf')
+# Train a regression model on the loaded dataset
+model <- tuneTrain(data = DurumWheatDHEWC, y = 'DHE', method = 'rf', summary = defaultSummary, classProbs = FALSE)
 
 # Evaluate variable importance
-var_imp <- varimpPred(newdata = model$`Test Data`, y = 'DHE', model = model$Model)
+var_imp <- varimpPred(newdata = model$`Test Data`, y = 'DHE', model = model$Training)
 var_imp$VariableImportancePlot
 ```
 
 #### 3. Extract Onset Data
 
 ```R
-# Extract climatic data based on onset of planting
-onset_data <- getOnset(sites = unique(DurumWheatDHEWC$SiteCode), crop = 'ICDW', var = c("tavg", "prec"))
+# Extract onset and climatic data for durum wheat
+durum <- getAccessions(crop = 'Durum wheat', coor = FALSE)
+onset_data <- getOnset(sites = unique(durum$SiteCode), crop = 'ICDW',
+                var = c('tavg', 'prec'), cv = TRUE)
+# Climate data
 head(onset_data[[1]])
+
+# Onset and phenological data
+head(onset_data[[2]])
 ```
 
 #### 4. Visualize Spatial Data
 
 ```R
-# Map accessions by site
-mapAccessions(data = DurumWheatDHEWC, longitude = "Longitude", latitude = "Latitude", site_id = "SiteCode")
+# Map accessions by population type
+mapAccessions(df = durum, long = "Longitude", lat = "Latitude", y = "PopulationType")
 ```
 
 ## Vignettes
 
-Comprehensive tutorials and examples are available as vignettes:
+More details and examples are available as vignettes:
 
-1. [Crop Data Analysis](articles/CropData.html)
-2. [Machine Learning Workflows](articles/ML_Workflows.html)
-3. [Climate Data Integration](articles/Sites_climate.html)
+1. [Accessing Crop-Related Data](articles/CropData.html): `vignette("CropData")`
+2. [Predictive Modeling using tuneTrain()](articles/ML_Workflows.html): `vignette(ML_Workflows)`
+3. [Extracting Sites Climate Data](articles/Sites_climate.html): `vignette(Sites_climate)`
 
 To view vignettes locally:
 
@@ -96,33 +98,18 @@ To view vignettes locally:
 browseVignettes("icardaFIGSr")
 ```
 
-## Contributing
-
-We welcome contributions to `icardaFIGSr`! Please see our [Contributing Guidelines](https://github.com/Analychaf/icardaFIGSr/blob/main/CONTRIBUTING.md) for details on how to get involved.
-
-## License
-
-This package is licensed under the MIT License. See the LICENSE file for details.
-
 ## Acknowledgments
 
-This project was developed with contributions from:
-<br>
-- **Zakaria Kehel** (*Maintainer and Author*)<br>
-- **Khadija Aziz** (*Author*)<br>
-- **Khadija Aouzal** (*Author*)<br>
-- **Chafik Analy** (*Author*)<br>
-- **Bancy Ngatia** (*Author*)<br>
-- **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar** (*Contributors*)<br>
+This package was developed with contributions from:
+
+> * **Zakaria Kehel** (*Maintainer and Author*)
+> * **Chafik Analy** (*Author*)
+> * **Khadija Aouzal** (*Author*)
+> * **Khadija Aziz** (*Author*)
+> * **Bancy Ngatia** (*Author*)
+> * **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar** (*Contributors*)
 
 ## Contact
 
-For questions, please contact :
-<br>
-Zakaria Kehel: [z.kehel@cgiar.org](mailto:z.kehel@cgiar.org) or
-Khadija Aouzal: [k.aouzal@cgiar.org](mailto:k.aouzal@cgiar.org)
-
----
-
-Explore the ICARDA FIGS R Package and leverage advanced tools to optimize your genebank management and research.
+For questions, please contact : Khadija Aouzal [k.aouzal@cgiar.org](mailto:k.aouzal@cgiar.org) or Zakaria Kehel [z.kehel@cgiar.org](mailto:z.kehel@cgiar.org)
 

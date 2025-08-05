@@ -27,7 +27,7 @@
 #'
 #' In addition to Model object, Model quality, Tuning and training datasets,For classification models, class probabilities and ROC curve are given in the results. For regression models, Variable importance, predictions and residuals versus predicted plot are given. \code{y} should be converted to either factor if performing classification or numeric if performing regression before specifying it in \code{tuneTrain}.
 #'
-#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
+#' @author Chafik Analy, Khadija Aziz, Zakaria Kehel, Bancy Ngatia
 #' @examples
 #' \dontrun{
 #' # Reading local test datasets
@@ -216,7 +216,7 @@ tuneTrain <- function(data, y, p = 0.7,
   }
   else {
     tune.mod = caret::train(trainx, trainy, method = method,
-                            tuneLength = Length, preProcess=process,
+                            tuneLength = Length, preProcess = process,
                             trControl = ctrl)
     print(tune.mod)
     
@@ -308,7 +308,7 @@ tuneTrain <- function(data, y, p = 0.7,
       Tuning = tune.mod, 
       Training = train.mod, 
       `Model quality` = confMatrix,
-      Variableimportance =plot(varImp(train.mod)),
+      VariableImportance =plot(varImp(train.mod)),
       ROC_Plot = roc_plot,
       `Class Probabilities` = prob.mod, 
       `Class Probabilities Plot` = prob.hist,
@@ -319,7 +319,7 @@ tuneTrain <- function(data, y, p = 0.7,
   }
   
   # For multiclass classification
-  if (is.factor(data[[y]]) && length(unique(data[[y]])) > 2) {
+  else if (is.factor(data[[y]]) && length(unique(data[[y]])) > 2) {
     
     prob.mod <- stats::predict(train.mod, testx, type = "prob")
     
@@ -382,7 +382,7 @@ tuneTrain <- function(data, y, p = 0.7,
       Tuning = tune.mod,
       Training = train.mod,
       `Model quality` = confMatrix,
-      Variableimportance = plot(varImp(train.mod)),
+      VariableImportance = plot(varImp(train.mod)),
       ROC_Results = roc_results,
       AUC_Values = auc_values,
       ROC_Plots = roc_plots,
@@ -397,7 +397,6 @@ tuneTrain <- function(data, y, p = 0.7,
   
   ## For regression  
   else if(is.numeric(data[[y]])) {
-    
     pred.mod = caret::predict.train(train.mod, newdata = testx)
     # Calculate residuals against the test set
     resids = testy - pred.mod

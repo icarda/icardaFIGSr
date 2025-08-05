@@ -1,42 +1,13 @@
 #' @title Extracting Daily Climatic Variables Based on Onset of Planting
-#' @description this function Extracts Daily values of climatic variables from remote ICARDA data based on Onset of Planting, it returns a list based on specified climatic variables. Each variable will have 365 values for each day of the (onset) year beginning with planting day.
+#' @description this function extracts daily values of climatic variables from remote ICARDA data based on Onset of Planting, it returns a list based on specified climatic variables. Each variable will have 365 values for each day of the (onset) year beginning with planting day.
 #' @param sites character. Names of sites from which to extract data.
-#' @param crop character. Crop code in ICARDA database. See section 'Details' for a list of crops.
+#' @param crop character. Crop code in ICARDA Genebank database. See section 'Details' for a list of crops.
 #' @param var character. Climatic variable(s) to be extracted. choices : tavg, prec, rh
 #' @param cv boolean. If \code{TRUE}, returns a data frame with coefficient of variation for each variable for each day of the onset year. Default: FALSE.
-#' @return An object of class "data.frame" with specified climatic variables for names in \code{sites}.
-#'
-#' If \code{cv = TRUE}, the object is a list containing three data frames: the first one with average daily values of climatic variables, the second one with daily coefficient of variation for each climatic variable, and the third one with phenotypic variables and number of day in calendar year when each occurs at the sites specified in \code{sites}.
-#'
-#' If \code{cv = FALSE}, the object is a list containing two data frames: the first one with average daily values of climatic variables, and the second one with phenotypic variables and number of day in calendar year when each occurs at the sites specified in \code{sites}.
+#' @return If \code{cv = TRUE}, returns a list containing three data frames: the first one with average daily values of climatic variables,the second one with phenological variables and number of day in calendar year when each occurs at the sites specified in \code{sites}, and the third one with daily coefficient of variation for each climatic variable.
+#' If \code{cv = FALSE}, returns a list containing two data frames: the first one with average daily values of climatic variables, and the second one with phenological variables and number of day in calendar year when each occurs at the sites specified in \code{sites}.
 #' @details Similar to \code{\link[icardaFIGSr]{getDaily}} except the extracted data is based on 365 days starting from the onset of planting.
-#' Crops available in ICARDA's genebank documentation system include the following:
-#' \describe{
-#'  \item{'ICAG'}{Aegilops}
-#'  \item{'ICB'}{Barley}
-#'  \item{'ICBW'}{Bread wheat}
-#'  \item{'ILC'}{Chickpea}
-#'  \item{'ICDW'}{Durum wheat}
-#'  \item{'ILB'}{Faba bean}
-#'  \item{'BPL'}{Faba bean BPL}
-#'  \item{'IFMI'}{Forage and range}
-#'  \item{'IFLA'}{Lathyrus}
-#'  \item{'ILL'}{Lentil}
-#'  \item{'IFMA'}{Medicago annual}
-#'  \item{'IC'}{Not mandate cereals}
-#'  \item{'IFPI'}{Pisum}
-#'  \item{'ICPW'}{Primitive wheat}
-#'  \item{'IFTR'}{Trifolium}
-#'  \item{'IFVI'}{Vicia}
-#'  \item{'ICWH'}{Wheat hybrids}
-#'  \item{'ICWW'}{Wheat wild relatives}
-#'  \item{'ILWC'}{Wild Cicer}
-#'  \item{'ICWB'}{Wild Hordeum}
-#'  \item{'ILWL'}{Wild Lens}
-#'  \item{'ICWT'}{Wild Triticum}
-#' }
-#'
-#'  Alternatively, the list of available crops can be fetched from ICARDA's online server using \code{\link[icardaFIGSr]{getCrops}}.
+#' The list of available crops can be fetched from ICARDA Genebank database using \code{\link[icardaFIGSr]{getCrops}}.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Bancy Ngatia  
 #' @examples
 #' \dontrun{
@@ -50,9 +21,9 @@
 #'
 #'  # Get data frame with coefficient of variation from list object
 #'  # returned (when cv = TRUE)
-#'  onset.cv <- onset[[2]] 
+#'  onset.cv <- onset[[2]]
 #'
-#'  # Get data frame with phenotypic variables from list object returned
+#'  # Get data frame with phenological variables from list object returned
 #'  onset.pheno <- onset[[3]]
 #'  }
 #' @seealso
@@ -137,6 +108,8 @@ getOnset <- function(sites, crop, var, cv = FALSE) {
   cv1 <- cv0[which(cv0 %in% colnames(onset.climate.cv.df))]
   names.cv <- colnames(climate.cv.df)
   
+  result <- list()
+  
   if(cv) {
     onset.climate.df <- onset.climate.df[ , var0]
     droplevels(onset.climate.df)
@@ -164,12 +137,7 @@ getOnset <- function(sites, crop, var, cv = FALSE) {
         tmpCV$site_code <- NULL
         onsetCVData <- cbind(onsetCVData, tmpCV)
       }
-      
-      result <- list()
-      result[[1]] <- onsetData
-      result[[2]] <- onsetCVData
-      result[[3]] <- onsetfile
-      return(result)
+      result[[3]] <- onsetCVData
     }
   }
   
@@ -188,10 +156,8 @@ getOnset <- function(sites, crop, var, cv = FALSE) {
       tmp$site_code <- NULL
       onsetData <- cbind(onsetData, tmp)
     }
-    
-    result <- list()
-    result[[1]] <- onsetData
-    result[[2]] <- onsetfile
-    return(result)
   }
+  result[[1]] <- onsetData
+  result[[2]] <- onsetfile
+  return(result)
 }

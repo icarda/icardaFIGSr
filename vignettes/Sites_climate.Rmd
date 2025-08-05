@@ -1,6 +1,6 @@
 ---
-title: "Sites_climate"
-author: "IcardaFIGSr Team"
+title: "Extracting Sites Climate Data"
+author: "Chafik Analy, Khadija Aouzal, Zakaria Kehel"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
@@ -22,133 +22,26 @@ knitr::opts_chunk$set(
 
 ## getDaily()
 
-`getDaily()` Retrieves Daily Weather Data from ICARDA database given a vector of `site_codes` and a vector of `climate variables` among possible choices. This example demonstrates how to use the function to retrieve average daily temperature (tavg) for a subset of sites.
-<br>
+`getDaily()` retrieves daily climate Data from ICARDA Genebank database given a vector of `site_codes` and a vector of `climate variables` among possible choices. This example demonstrates how to use the function to retrieve average daily temperature (tavg) for a subset of sites.
 
-```{r}
-### Load Sample Data
-septoriaDurumWC <- icardaFIGSr::septoriaDurumWC
-durumDaily <- icardaFIGSr::durumDaily
+```r
+library(icardaFIGSr)
+# Extract daily data for durum wheat
+durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
+daily <- getDaily(sites = levels(as.factor(durum$SiteCode)), 
+                    var = c('tavg', 'prec', 'rh'), cv = TRUE)
 ```
-
-### Extract Site Codes
-The durumDaily dataset contains site metadata, including site codes. Here, we extract site codes to specify the locations for data retrieval.
-<br>
-
-```{r}
-Sites <- as.character(durumDaily$site_code)
-# Retrieve Daily Data
-Daily_data <- icardaFIGSr::getDaily(sites = Sites[1:3],
-                                    var = c("tavg"))
-
-## Here we can visualize the output of getDaily()
-```
-
-### Resahpe output (optional)
-
-```{r}
-# Reshape Data for further visualization and analysis
-Daily_data <- Daily_data |>
-  tidyr::gather(-site_code, key = "key", value = "value")
-
-# Preview the Results
-head(Daily_data)
-```
-<br>
-The resulting dataset contains the site codes, variable keys (e.g., tavg), and corresponding values for each day. You can now use this data for further analysis or visualization.
-<br>
 
 ## extractWcdata()
 
-`extractWCdata()` is an upgraded version of `raster:getData()` function. It allows to extract the worldclim v2.1 with latest updates.
-<br>
-The `extractWCdata()` function automatically downloads WorldClim 2.1 data within an extent of interest based on specified coordinates from the [Biogeo davis repository](https://geodata.ucdavis.edu/climate/worldclim/1_4/). When this later is not available,- check this [issue](https://github.com/rspatial/raster/issues/338) for more details -, it prompts you to download your variables of interest from the official website of [worldclim](https://www.worldclim.org/data/worldclim21.html#bio_10m).
+`extractWCdata()` extracts monthly historical climate data from WorldClim v2.1 for the specified climate variable(s) and sites. 
 
-In this case, a `worldclim/var/` folder will be created in your working directory. So you can either copy the downloaded `.tiff` files to the created path folder or use their full path. Further steps should be followed to get the final data returned by `extractWCdata()`. Below we describe the steps to follow.
-
-### Simulate raster files as worldclim files
-
-```{r ,fig.cap = "Simulated temperature & precipitation rasters"}
-# Load necessary libraries
-library(raster)
-
-# Create two raster layers for tavg and prec
-tavg <- raster(nrows = 10, ncols = 10, xmn = -180, xmx = 180, ymn = -90, ymx = 90)
-values(tavg) <- runif(ncell(tavg), min = 15, max = 30)
-
-prec <- raster(nrows = 10, ncols = 10, xmn = -180, xmx = 180, ymn = -90, ymx = 90)
-values(prec) <- runif(ncell(prec), min = 100, max = 500)
-
-# Stack both rasters into a RasterStack
-clim_stack <- raster::stack(tavg, prec)
-
-# Name rasters
-names(clim_stack) <- c("tavg", "prec")
-
-# Visualize results
-plot(clim_stack)
-
-```
-
-### Simulate georeferenced sites
-
-```{r}
-library(sf)
-
-# Define coordinates in a data frame
-coords <- data.frame(site =c("site1","site2") ,long = c(10, 70), lat = c(45, -20))
-
-# Convert to sf object with WGS 84 projection
-sf_coords <- sf::st_as_sf(coords, coords = c("long", "lat"), crs = 4326)
-
-# View sf object
-sf_coords
-```
-
-### Extract Worldclimat data
-
-```{r}
-# Extract values from raster stack
-extracted_values <- raster::extract(clim_stack, sf_coords)
-
-# Bind to sites
-sites_climate <- cbind(sf_coords[,1],extracted_values)
-
-# Check final results : typical result of extractWCdata
-head(sites_climate)
-
-```
-
-In this example, we demonstrate how to use this function to extract `average temperature = tavg` and `precipitaton = prec` data for a set of locations. We can also choose one or many climatic variables, like the standard 19 bios at different resolutions, precipitation, solar radiation and wind speed.
-<br>
-
-```{r, eval=FALSE}
-
-# Please run the following code chunk for retireving real data.
-
-library(sf)
+```r
 library(icardaFIGSr)
 
-# Define longitude and latitude ranges around Morocco
-long <- seq(-11, 11, length.out = 10) # Longitude range
-lat <- seq(25, 59, length.out = 10)   # Latitude range
+# Get barley accessions
+barley_accs <- getAccessions(crop = "Barley", coor = TRUE)
 
-# Create a grid of coordinates
-sf <- expand.grid(long = long, lat = lat)
-
-# Extract climate data (WorldClim 2.1) using the grid
-sf.df0 <- extractWCdata(
-  sf,
-  long = 'long',
-  lat = 'lat',
-  var = c('tavg',"prec"),  # climatic variables
-  res = 2.5        # Spatial resolution
-)
-
-# Preview the extracted data
-print(head(sf.df0))
-
-## Or list the downloaded climate data from worldclim folder
-## then use them for your analysis.
-
+barley_accs_bio <- extractWCdata(barley_accs, long = 'Longitude', lat = 'Latitude', 
+                                  var = 'bio', res = 2.5)
 ```

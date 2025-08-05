@@ -9,7 +9,7 @@
 #' If \code{cv = TRUE}, the object is a list containing two data frames: the first one with average daily values of climatic variables, and the second one with daily coefficient of variation for each climatic variable.
 #'
 #' If \code{cv = FALSE}, the object is a data frame with average daily values of climatic variables.
-#' @details ICARDA data has to be accessible either from a local directory on the computer or from an online repository. \code{getDaily} will extract the climatic variables specified in \code{var} for the sites specified in \code{sites}.
+#' @details \code{getDaily} will extract the daily climatic variables specified in \code{var} for the sites specified in \code{sites} from an online repository.
 #'.         The function then extracts average daily values starting from the first day of the calendar year, until the last day of the calendar year. Thus, returning 365 columns with daily values are created for each variable.
 
 #' @author Zakaria Kehel, Bancy Ngatia

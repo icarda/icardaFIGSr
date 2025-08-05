@@ -2,7 +2,7 @@
 pkgdown:
   as_is: true
   title: "icardaFIGSr"
-  url: "https://github.com/Analychaf/icardaFIGSr"
+  url: "https://github.com/icarda/icardaFIGSr"
 
 # Build options
 template:
@@ -25,15 +25,16 @@ navbar:
       - "articles"
       - "news"
     right:
-      - "https://github.com/Analychaf/icardaFIGSr"
+      - "https://github.com/icarda/icardaFIGSr"
 
 # Specify where articles (vignettes) are located
 articles:
   - title: "Vignettes"
     contents:
       - CropData
-      - ML_Workflows
       - Sites_climate
+      - ML_Workflows
+      
 
 
 # Additional datasets to include in the reference
@@ -71,7 +72,7 @@ reference:
       contents:
         - splitData
         - tuneTrain
-        - varimpPred
+        - make_prediction
         - getMetrics
         - getMetricsPCA
         - modelingSummary

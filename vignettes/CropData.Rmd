@@ -1,14 +1,12 @@
 ---
-title: "CropData"
-author: "IcardaFIGSr Team"
+title: "Accessing Crop-Related Data"
+author: "Chafik Analy, Khadija Aouzal, Zakaria Kehel"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{CropData}
+  %\VignetteIndexEntry{"Accessing Crop-Related Data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-description: >
-  This vignette demonstrates how to fetch a list of crop data available available at ICARDA's Databse using the icardaFIGSr package, focusing on key datasets and workflows.
 ---
 
 
@@ -19,244 +17,141 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+This vignette lists the functions from the icardaFIGSr package used for retrieving crop-related data from ICARDA Genebank database, and provides examples of fetching key data.
 
-## getCrops()
+> Running some functions will prompt you to enter your user name and password, if not previously authentified.
 
-`getCrops()` returns demonstrates the usage of the getCrops() function from the icardaFIGSr package. The function retrieves a list of crops and their corresponding codes from the ICARDA web service. However, for demonstration purposes, we will mock the API call to avoid external dependencies during vignette rendering.
+## Functions
+### getCrops()
 
+`getCrops()` retrieves a list of crop names and their corresponding codes.
 
+### getAccessions()
+
+`getAccessions()` returns the passport data of accessions for a specified crop or a list of accession numbers. The retrieved passport descriptors include:
+
+* **IG:** Accession number, the unique identifier for accessions within a genebank.
+* **Crop:** Crop name associated with the accession.
+* **Taxon name:** Scientific name of the sample composed of genus+species.
+* **Country:** 3-letter ISO 3166-1 code of the sample's country of origin.
+* **PopulationType:** Biological status of the sample.
+* **SiteCode:** Code identifying the specific site of collection.
+* **Longitude:** Longitude of the collecting site in decimal degrees format.
+* **Latitude:** Latitude of the collecting site in decimal degrees format.
+* **Altitude:** Altitude of the collecting site.
+* **Province:** Name of administrative division below the country level.
+* **ADM1:** First level administrative division in the country.
+* **SITE:** Locality where the sample was collected.
+* **CollectionYear:** Year when the sample was collected.
+
+### getTraits()
+
+`getTraits()` returns a dataframe for each specified crop describing the available traits ontologies. The dataframe includes:  
+
+* **Id:** A unique identifier for each trait associated with the crop.
+* **Trait:** The trait name being measured or observed (e.g., 'Days to heading').
+* **Options:** Code-value pairs for coded traits (e.g., '1-Narrow; 2-Medium; 3-Large' for _flag leaf width_ trait).
+* **Field:** The abbreviated name of the trait.
+
+### getTraitsData()
+
+`getTraitsData()` returns the observed values for a specified trait and a list of accession numbers.
+
+### getOnset()
+
+`getOnset()` extracts daily values of climatic variables based on Onset of Planting for sites available in the ICARDA Genebank database. Each variable will have 365 values for each day of the (onset) year beginning with planting day.
+
+### getGrowthPeriod()
+
+`getGrowthPeriod()` calculates growing degree days (GDD), cumulative GDD, and the length of growth stages for various crops using onset data from `getOnset()` function.
+
+## Examples
+### Passport Data
+
+```r
+# Load icardaFIGSr package
+library(icardaFIGSr)
+
+# List all crops maintained in the ICARDA Genebank
+getCrops()
+
+# Get all the cultivated barley accessions and their basic passport data
+getAccessions(crop = 'barley')
+
+# Include DOI, taxonomy, collection year and other identifiers to the output 
+getAccessions(crop = 'barley', doi = TRUE, taxon = TRUE, collectionYear = TRUE, other_id = TRUE)
+
+# Get only available accessions for distribution for barley
+getAccessions(crop = 'barley', available = TRUE)
+
+# Get only georefenced accessions for barley
+getAccessions(crop = 'barley', coor = TRUE)
+
+# Get accessions for barley and for which countries of origin are Morocco and Lebanon
+getAccessions(crop = 'barley', ori = c('MAR','LBN'))
+
+# Get the passport data of a list of accession numbers, i.e. IGs
+# read the list of IGs from a csv file with a column holding IGs named e.g. IG
+list_IGs <- read.csv('/path/to/csv/file.csv')
+getAccessions(IG = list_IGs$IG)
+
+```
 ```{r}
-icardaFIGSr::getCrops()
-```
+library('icardaFIGSr')
 
-## getCropTraits()
+# Load FIGS subset for wheat sodicity resistance
+data(FIGS)
 
-`getCropTraits()` returns a dataframe for each specified crop describing the available traits. As an example, the function returns around 50 recorded unique traits for barley and bread wheat.
+# World Map showing collecting sites of accessions
+mapAccessions(df = FIGS, long = 'Longitude', lat = 'Latitude')
 
-<br> **Id:** A unique identifier for each trait associated with the crop. <br> **Trait:** The characteristic being measured or observed for the crop (e.g., "Days to heading" or "kernel row number").
-<br> **Options:** The possible values or column levels for each trait (e.g., "1-Narrow;2-Medium;3-Large" for Flag leaf width trait).
-<br> **Field:** The abbreviated name of the trait.
+# Plotting collecting sites of accessions with points coloured based on a gradient scale of SodicityIndex values
+mapAccessions(FIGS, long = 'Longitude', lat = 'Latitude', y = 'SodicityIndex')
 
-<br>
-
-Running this function will prompt you to enter your user name and password. Below we generate a typical output of the function.
-
-<br> 
-
-Note that the crop name is written with a lowercase within `getCropTraits()` compared to the crop names dataframe returned by `getCrops()`.This is important to consider when using the output of this later function within the former function.
-
-```{r}
-# Create a example data of barley
-Barley <- data.frame(
-  Id = c(1, 2, 3),
-  Trait = c("Flag leaf width[1-3 score]", "kernel row number", "Days to heading"),
-  Options = c("1-Narrow;2-Medium;3-Large", "1-Six-rowed;2-Two-rowed;3-Two-rowed - rudimentary florets", NA),
-  Field = c("FLWS", "RNO", "DHE")
-)
-
-#' \dontrun{
-#' Barley <- icardaFIGSr::getCropTrait("barley")
-#'}
-
-# print Barley Traits
-head(Barley)
+# Plotting collecting sites of accessions with points coloured based on levels of y 
+mapAccessions(FIGS, long = 'Longitude', lat = 'Latitude', y = 'PopulationType')
 
 ```
 
-```{r}
-# Create example data of breadwheat
-BreadWheat <- data.frame(
-  Id = c(1, 2, 3),
-  Trait = c("Plant height", "Seed shattering", "Growth habit"),
-  Options = c(NA, "1-Yes; 2-No", "1-Erect;2-Intermediate;3-Prostrate"),
-  Field = c("PHT", "SDSHT", "GHA")
-)
+### Traits Data
+```r
+# To get data of one trait for a list of accessions:
+# Get the list of accessions for a crop of interest, e.g. barley:
+barley_accs <- getAccessions(crop = 'barley')
 
-#' \dontrun{
-#' BreadWheat <- icardaFIGSr::getCropTrait("bread wheat")
-#'}
+# Get traits descriptors for barley
+getTraits(crop = 'barley')
 
-# print BreadWheat Traits
-head(BreadWheat)
-```
+# Pick the traitID of the trait of interest from the output of getTraits (e.g. Awn roughness has traitID=83 for barley), and then get the trait observations
+getTraitsData(IG = barley_accs$IG, traitID = 83)
 
-## getAcessions()
-
-**Definition**
-
-**Accession:** A distinct, uniquely identifiable sample of seeds representing a cultivar, breeding line or a population, which is maintained in storage for conservation and use.
-<br>
-**Accession number:** A unique identifier that is assigned by the curator when an accession is entered into a gene bank [FAO](https://www.fao.org/wiews/glossary/en/#:~:text=Accession%3A%20A%20distinct%2C%20uniquely%20identifiable,entered%20into%20a%20gene%20bank.)
-<br>
-`getAccessions()` returns a data frame of accessions for a specified crop. Below we describe the available columns of the output.
-<br>
-**IG:** A unique identifier for germplasme.
-<br> **Crop:** The crop associated with the accessions (e.g., Barley). <br> **Country:** The country where the sample was collected (e.g., Morroco-MAR).
-<br> **PopulationType:** Type of population (e.g., LA - Local).
-<br> **SiteCode:** Code identifying the specific site of collection.
-<br> **Longitude:** The longitudinal coordinates of the site.
-<br> **Latitude:** The latitudinal coordinates of the site.
-<br> **Altitude:** The altitude of the collection site (if available). <br> **Province:** The province where the sample was collected.
-<br> **ADM1:** Administrative division (state, region, or territory).
-<br> **SITE:** Name of the collection site.
-<br> **CollectionYear:** Year the sample was collected.
-<br>
-<br>
-To get real accessions data, you need credentials keys : `username` and `password`, usually provided by `GRS-ICARDA` department. Below we simulate the standard structure of some barley accessions data.
-<br>
-<br>
-```{r}
-# Generate the dataset
-Barley_Acessions <- data.frame(
-  IG = 1:50,
-  Crop = rep("Barley", 50),
-  Country = c(rep("MAR",15),rep("MEX",15), rep("AFG",20)),
-  PopulationType = c(rep("LA",15),rep("CV", 15),rep("GS", 20)),
-  SiteCode = paste("Code",1:50),
-  Longitude= c(runif(15, min = -8.9566, max = 7),   # Morocco
-             runif(15, min = -103.35, max = -93.12),  # Mexico
-             runif(20, min = 62.20, max = 69.21)),   # Afghanistan
-  Latitude = c(runif(15, min = 31.63, max = 34.03),  # Morocco
-             runif(15, min = 16.75, max = 20.67),  # Mexico
-             runif(20, min = 31.61, max = 34.56)),   # Afghanistan
-  Altitude = runif(50, 0, 500),
-  Province = paste("Prov",1:50),
-  ADM1 = paste("State_region" ,1:50),
-  SITE = paste("Site_name_location",1:50),
-  CollectionYear = runif(50,1900,2024) |> round()
-)
-
-# View the dataset
-head(Barley_Acessions)
-
-```
-
-The output data can be used to explore available accessions for a given crop of interest. To learn more about these accessions, we can visualize the counts across countries and their spatial distribution using `ggplot2:ggplot()` or `leaflet:leaflet()` functions. To learn more about their history, we can inspect data over time using the `collectionYear` column. It can also be used to generate spatio-temporal animations by leveraging R `shiny()` capabilities. Additionally, and most importantly, these spatially referenced accessions can be linked to traits data sets by `IG` to conduct spatial analysis at different scales, including but not limited to, conducting spatial autocorrelation for a specific trait, spatial clustering given multiple traits, or building Machine learning models, etc. Some of these examples will be discussed in the following sections. With the appropriate credentials, please run code below.
-<br>
-
-```{r}
-# You can run this code chunk if you have the necessary credentials
-#' @example
-#' \dontrun{
-#' Barley_Accessions <- icardaFIGSr::getAccessions(crop = "barley",
-#'                                        collectionYear = T, coor = TRUE)
-#'}
-
-```
-
-Here we use the `leaflet()` package to visualize the simulated accessions count.
-
-```{r ,fig.cap = "Accessions location counts"}
-library(leaflet)
-
-leaflet(Barley_Acessions)%>%
-  addTiles()%>%
-  addCircleMarkers(lng = ~Longitude, lat = ~Latitude, color = "red", 
-              label = ~Country, 
-              clusterOptions = markerClusterOptions())
-
-```
-
-Here we explore the count of data over time and by country using `ggplot2::ggplot2()` package.
-
-```{r ,fig.cap = "Accessions count over time"}
-library(ggplot2)
-
-ggplot(data = Barley_Acessions, aes(x=CollectionYear, fill=Country))+
-  geom_bar(position="dodge2")
-  
-```
-
-## mapAccessions()
-
-`mapAccessions()` returns an interactive map using accessions coordinates and interest variable `y`. This later can be numeric or character variable. This function allow to map accessions locations based on a given criteria specified `y` argument. In this example, we use `sodicityIndex` and `PopulationType` from the `FIGS` dataset.
-<br>
-This dataset is designed to assist in studies on sodicity resistance in wheat populations. It integrates site-level information, including soil salinity and sodicity measures (ESP and ECE), altitude, and climatic variables. The sodicity index and category offer a consolidated view of the sodicity characteristics of some sample sites. More details about the data source are desribed under `icardaFIGSr::FIGS` references.
-<br>
-<br>
-
-### Accessions with/without NA's
-```{r}
-FIGS <- icardaFIGSr::FIGS
-
-# World Map showing locations of accessions
-icardaFIGSr::mapAccessions(df = FIGS,
-                           long = "Longitude", lat = "Latitude")
-```
-
-### Accessions by SodocityIndex
-```{r}
-# Map plotting locations of accessions with points coloured 
-# based on a gradient scale of SodicityIndex values
-icardaFIGSr::mapAccessions(FIGS, long = "Longitude",
-                           lat = "Latitude", y = "SodicityIndex")
-```
-
-### Accessions by PopulationType
-```{r}
-# Map plotting locations of accessions with points
-# coloured based on levels of y 
-icardaFIGSr::mapAccessions(FIGS, long = "Longitude",
-                           lat = "Latitude", y = "PopulationType")
-
-```
-
-## getTraitsData()
-
-`getTraitsData()` function returns a data frame that describes the available accessions data and their corresponding measurements of available traits. It can take multiple accessions `IGs` ,but only one `traitID` at a time. Thus, we can loop through Trait IDs for the provided group of accessions. 
-<br>
-The output is a list of datasets, one for each trait. They can be used in many ways to highlight valuable insights to support genetic resources conservation efforts for available crops. One way to do this, is to combine extracted traits, `YEAR` and `IGs` into one dataframe by looping through the list. Then, use the resulting data frame to run multivariate analysis. To add spatial context to the resulting dataframe `Accessions_Traits` dataset, we can merge it with the georeferenced accessions returned by the `getAcessions` function by `IGs` for the same crop.
-<br>
-Below we describe this process from data retrieval to final data set.
-<br>
-
-```{r ,eval=FALSE }
-
-# Load package
-library(tidyr)
-library(dplyr)
-
-# Get Barleyacessions
-Barley_Accessions <- icardaFIGSr::getAccessions(crop = "barley",
-                                    collectionYear = TRUE, coor = TRUE)
-
-IGs <- unique(Barley_Accessions$IG)
-
-# Get Barley Traits
-Barley <- icardaFIGSr::getCropTraits("barley") # Note that crop names are in lowercase here compared to getCrops() output.
-TraitID <- unique(Barley$ID)
-
-# Subset some accessions and traits
-Some_Accessions <- IGs[1:10]
-Some_Traits <- TraitID[1:10]
-
+# To get data for many traits at once, e.g. Awn roughness (traitID=83), Plant height (traitID=93) and Days to heading (traitID=89)
+# Define the traits of interest
+traits <- c(83,93,89)
 # Initialize an empty list to store the results
 Barley_Accessions_Traits <- list()
 
 # Loop through each TraitID
-for (trait_id in 1:length(Some_Traits)) {
+for (trait_id in 1:length(traits)){
   # Extract trait data for the current TraitID
-  trait_data <- icardaFIGSr::getTraitsData(IG = Some_Accessions,
-                                traitID = Some_Traits[trait_id])
+  trait_data <- getTraitsData(IG = barley_accs$IG,
+                                traitID = traits[trait_id])
 
-    # Check if the trait_data contains 'IG', 'YEAR' and a trait-specific 
-     
-  if (all(c("IG", "YEAR") %in% colnames(trait_data))) {
+  if(nrow(trait_data)<1){
+    next
+  }
+
+  # Check if the trait_data contains 'IG', 'YEAR' and a trait-specific 
+  if (all(c("IG", "YEAR") %in% colnames(trait_data))){
     # Extract 'IG', 'YEAR', and the last column (trait-specific column)
     last_col <- colnames(trait_data)[ncol(trait_data)]
-    
-    # Selected data
     trait_data <- trait_data[ ,c("IG","YEAR", last_col)]
     
-    # add Trait_name column
-    trait_data$Trait_field <- last_col
+    # Add Trait_name column
+    trait_data$Trait_name <- last_col
     
-    # rename trait_value
-    colnames(trait_data) <- c("IG","Year","Trait_value","Trait_field")
-    
-    if(nrow(trait_data)<1){
-      next
-    }
+    # Rename trait_value
+    colnames(trait_data) <- c("IG","Year","Trait_value","Trait_name")
   }
   # Store the result in the list
   Barley_Accessions_Traits[[as.character(trait_id)]] <- trait_data
@@ -265,170 +160,75 @@ for (trait_id in 1:length(Some_Traits)) {
 # Bind all datasets together (converting a list into a dataframe)
 Barley_Accessions_Traits <- do.call(rbind.data.frame,
                                     Barley_Accessions_Traits)
-
-# And finally, we can spread the traits as columns 
-Barley_Accessions_Traits <- Barley_Accessions_Traits%>%
-  tidyr::spread(value="Trait_value", key="Trait_field")
-
-# Add coordinates
-Barley_Accessions_Traits <- Barley_Accessions%>%
-  dplyr::select(IG, Longitude, Latitude)%>%
-  merge(Barley_Accessions_Traits, by="IG")
-
-# Print Final table
-head(Barley_Accessions_Traits)
-
 ```
-
-```{r}
-
-# Run this code chunk if you have the necessary credentials
-#' @example
-#' \dontrun{
-#' 
-#' IGs <- unique(Barley_Accessions$IG)
-#' TraitID <- unique(Barley_Traits$ID)
-#' 
-#' # Subset some accessions by IG
-#' germplasme_samples <- IGs[1:10]
-#' 
-#' germplasme_Trait <- TraitID[1:10]
-#' 
-#' Barley_Traits_data <- icardaFIGSr::getTraitsData(
-#'         IG = germplasme_samples , traitID = germplasme_Trait[1])
-#'}
-
-```
-
-## getOnset()
-
-`getOnset` function returns a list of 2 main datasets. The first dataset contains the site's code as the first column and 365 other columns each corresponding to the day of the year of specified climate variables starting from onset date. When `cv=TRUE`,a third dataset is added to the final output which contains the `coefficient of variation` of the interest variable.
+### Onset Data
+`getOnset` returns a list of 2 main datasets. The first dataset contains the site's code as the first column and 365 other columns each corresponding to the day of the year of specified climate variables starting from the onset date. When `cv=TRUE`, a third dataset is added to the final output which contains the `coefficient of variation` of the variable of interest.
 <br>
-Below, we use some site codes from durumWC dataset, and specify ICDW (durum wheat) as crop code (use `getCrops` function to list available cropCodes for your crop of interest), then specify the appropriate climate variable : tavg, prec, rh (relative humidity). Please refer to documentation using ?getOnset for more details.
+In the example below, we use site codes from durumWC dataset, specify ICDW (durum wheat) as crop code (use `getCrops()` function to list available cropCodes for your crop of interest), and specify `c('tavg','prec')` as the climate variables. Please refer to the documentation using `?getOnset` for more details.
 <br>
-<br>
-```{r}
 
-# call durumWC dataset
-data("durumWC", package = "icardaFIGSr")
+```r
+library(icardaFIGSr)
+# Load durumWC dataset
+data("durumWC")
+durumWC <- durumWC |> dplyr::ungroup()
 
-durumWC <- durumWC|>dplyr::ungroup()
-
-# Make sure Sites is a character vector
-Sites <- as.character(unique(durumWC$SiteCode))
+# Get site codes
+Sites <- levels(as.factor(durumDaily$site_code))
 
 # Get onset data
-onset <- icardaFIGSr::getOnset(sites = Sites[1:2], crop = 'ICDW',
-                     var = c('tavg'), cv = T)
+onset <- getOnset(sites = Sites[1:2], crop = 'ICDW',
+                     var = c('tavg','prec'), cv = TRUE)
 
-# Get data frame with climatic variables from the list object 
-onset.clim <- onset[1]
+# Get the dataframe with climatic variables from the list object 
+onset.clim <- onset[[1]]
 
-# Get data frame with pheno variables from the list object
-onset.pheno <- onset[2]
+# Get the dataframe with phenological variables from the list object
+onset.pheno <- onset[[2]]
 
-onset.climcv <- onset[3]
-
+# Get the dataframe with coefficient of variation from the list object
+onset.climcv <- onset[[3]]
 ```
+### Growth Period Data
+`getGrowthPeriod()` returns a list of three dataframes:
 
-## getGrowthPeriod()
-
-`getGrowthPeriod()` function returns a list of three dataframes. Multiple examples are provided below in this section to describe each dataset output for selected crops.
+1. Growth_Period: contains `sitecode`, `onset`, lengths of `growth stages` (expressed in days), and `Cycle` which is the sum of the growth stages. 
 <br>
+The growth stages are named following abbreviation codes for each crop. Below is a glossary of used growth stage codes and their corresponding names.
 
-**Growth_Period :** contains `sitecode` (referring to the available sites among those specified in the sitecode argument), the second column is the `onset` (in days of the year, example : onset=150 means that the onset starts around Mai-June). The remaining columns represent the lengths of `growth stages` (expressed in days). The sum of these growth stages are equal to the last column, called Cycle. 
-<br>
-The growth stages are named following abbreviation codes for each crop. Below is a glossary of used growth stage codes and their corresponding names. At the output level, the growth stages abbreviated names prefix "L" stands for length. for more details, please refer to `getGrowthPeriod()` documentation.
-<br>
-<br>
-```{r}
+| Stage Code        | Stage Name                    |
+|:------------------|:------------------------------|
+| HB                | Heading Begins                |
+| FB                | Flowering Begins              |
+| FC                | Flowering Complete            |
+| FC50              | 50% Flowering Complete        |
+| GFB               | Grain Filling Begins          |
+| GFC               | Grain Filling Complete        |
+| SF                | Seed Filling                  |
+| M                 | Maturity                      |
 
-growth_stages_codes <-  data.frame(
-  StageName = c("Heading begins", "Flowering begins",
-                "Flowering complete", "50% Flowering Complete",
-                "Grain fill begins",
-                "Grain fill complete",
-                "Seed fill","Maturity"),
-  StageCode = c("HB","FB","FC","FC50","GFB","GFC","SF","M")
-)
+2. Onset_Data: contains `sitecode`, `onset` and `growth stages` of all sites available for the specified crop.
 
-growth_stages_codes
-```
+3. Growing_Degree_Days: includes `sitecode`, their temperature ranges `tmin` and `tmax`, the calculated growing degree days `gdd`, their cumulatives `cumgdd` and corresponding `days after planting`.
 
-### Barley Crop
+```r
+library(icardaFIGSr)
+data(durumDaily)
 
-```{r}
-durumDaily <- icardaFIGSr::durumDaily
-
-# Make sure that site codes are characters not factors
-Sites <- as.character(durumDaily$site_code)[1:10]
-
-# Get growth period for barley with specified temperature range
-growth <- icardaFIGSr::getGrowthPeriod(sitecode = Sites,
-                             crop = 'Barley', base = 0,
-                             max = 25, gdd = TRUE)
-# Check results of growth period
-head(growth$Growth_Period)
-
-```
-
-### Durum wheat
-
-Please uncomment and run the code chunk below to get the same datasets for Durum wheat.
-<br>
-
-```{r}
-
-# Make sure that site codes are characters not factors
-# Sites <- as.character(durumDaily$site_code)[1:3]
+# Get site codes
+Sites <- levels(as.factor(durumDaily$site_code))
 
 # Get growth period for durum wheat with specified temperature range
-# growth <- icardaFIGSr::getGrowthPeriod(sitecode = Sites,
-#                             crop = 'Durum wheat', base = 0,
-#                             max = 25, gdd = TRUE)
-
-# Check results of growth period
-# head(growth$Growth_Period)
-```
-
-### Lentil Crop
-<br>
-**Growing_Degree_Days :** represents `sitecodes`, their temperature ranges, the calculated growing degree days `gdd`, their cumulatives `cumgdd` and corresponding `days after planting`.
-
-<br>
-
-```{r}
-
-# Make sure that site codes are characters not factors
-Sites <- as.character(durumDaily$site_code)[20:30]
-
-# Get growth period for lentil with specified temperature range
 growth <- icardaFIGSr::getGrowthPeriod(sitecode = Sites,
-                             crop = 'Lentil', base = 0,
-                             max = 25, gdd = TRUE)
-# Check results of growing degree days
-head(growth$Growing_Degree_Days)
+                              crop = 'Durum wheat', base = 0,
+                              max = 35, gdd = TRUE)
 
-```
+# Get the dataframe with lengths of growth stages from the returned list
+growth.lengths <- growth[[1]]
 
-### Chickpea Crop
-<br>
-**Onset_Data :** represents `sitecode`, `onset` and `growth stages` of all sites available for the specified crop.
-<br>
-Note that growth stages in the `Onset_Data` dataset have full names compared to `Growth_Period` dataset.
-<br>
+# Get the dataframe with phenological variables from the returned list
+growth.pheno <- growth[[2]]
 
-```{r}
-# Make sure that site codes are characters not factors
-Sites <- FIGS[grep("MAR|IND", as.character(FIGS$SiteCode)), ]
-
-Sites <- as.character(Sites$SiteCode)
-
-# Get growth period for chickpeae with specified temperature range
-growth <- icardaFIGSr::getGrowthPeriod(sitecode = Sites,
-                             crop = 'Chickpea', base = 0,
-                             max = 25, gdd = TRUE)
-# Check results of onset data
-head(growth$Onset_Data)
-
+# Get dataframe with GDD, cumulative GDD, tmin and tmax from the returned list (when gdd = TRUE)
+growth.gdd <- growth[[3]]
 ```
