@@ -1,4 +1,3 @@
-
 #' @title Get modeling metrics
 #' @description modelingSummary is an automatic function for modeling data, it returns a dataframe containing the metrics of the modeling using five machine learning algorithms: KNN, SVM, RF, NNET, and Bcart. This function is based on spliData, tuneTrain, predict, and getMetrics functions.
 #' @param data object of class "data.frame" with target variable and predictor variables.
@@ -21,7 +20,7 @@
 #' 
 #' @author Zakaria Kehel, Khadija Aziz
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  data(septoriaDurumWC)
 #'  models <- modelingSummary(data = septoriaDurumWC, y = "ST_S", positive = "R", classtype = 2)
 #' }
@@ -31,11 +30,11 @@
 #'  \code{\link[caret]{train}},
 #'  \code{\link[caret]{predict.train}},
 #'  \code{\link[caret]{confusionMatrix}}
-#' @rdname modelingSummary
-#' @export
+#' @name modelingSummary
 #' @importFrom caret createDataPartition trainControl train predict.train confusionMatrix
 #' @importFrom utils View
 #' @importFrom stats predict xtabs
+#' @export
 
 modelingSummary <- function (data, y, p = 0.7, 
                        length = 10, control = "repeatedcv", number = 10, 

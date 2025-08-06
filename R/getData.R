@@ -36,56 +36,27 @@
   
 }
 
-
-#' @title Getting Accession Data from ICARDA's Genebank Documentation System
-#' @description Return a data frame with accession data for the specified crop.
+#' @title Getting Accession Data from ICARDA's Genebank Database.
+#' @description Return a data frame with accession data for the specified crop or specified list of accession numbers (i.e. IGs).
 #' @param crop character. Crop for which to get accession data. See section 'Details' for available crops or use \code{\link[icardaFIGSr]{getCrops}} function. Default: "".
 #' @param ori string. Country of origin using the ISO 3166-1 alpha-3 country codes. Default: NULL.
-#' @param IG integer. Unique identifier of accession. Default: "".
+#' @param IG integer. List of accession numbers. Default: "".
 #' @param doi boolean. If \code{TRUE} , the function will return the digital object identifiers DOI for the accessions. Default: FALSE.
 #' @param taxon boolean. If \code{TRUE}, the function will return the taxon information of the accessions. Default: FALSE.
 #' @param collectionYear boolean. If \code{TRUE}, the function will return the year of the collecting mission. Default: FALSE.
-#' @param coor boolean. If \code{TRUE}, returns only georeferenced accessions containing longitude and latitude. Default: FALSE.
-#' @param available boolean. If \code{TRUE}, returns the availability of accessions for distribution, Default: FALSE.
-#' @return A data frame with accession passport data for specified crop in \code{crop} from the locations in \code{ori}.
-#' @details Types of crops available include:
-#' \itemize{
-#'   \item{'Aegilops'}
-#'   \item{'Barley'}
-#'   \item{'Bread wheat'}
-#'   \item{'Chickpea'}
-#'   \item{'Durum wheat'}
-#'   \item{'Faba bean'}
-#'   \item{'Faba bean BPL'}
-#'   \item{'Forage and range'}
-#'   \item{'Lathyrus'}
-#'   \item{'Lentil'}
-#'   \item{'Medicago annual'}
-#'   \item{'Not mandate cereals'}
-#'   \item{'Pisum'}
-#'   \item{'Primitive wheat'}
-#'   \item{'Trifolium'}
-#'   \item{'Vicia'}
-#'   \item{'Wheat hybrids'}
-#'   \item{'Wheat wild relatives'}
-#'   \item{'Wild Cicer'}
-#'   \item{'Wild Hordeum'}
-#'   \item{'Wild Lens'}
-#'   \item{'Wild Triticum'}
-#'  }
-#'
-#'  Alternatively, the list of available crops can be fetched from ICARDA's online server using \code{\link[icardaFIGSr]{getCrops}}.
+#' @param coor boolean. If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.
+#' @param available boolean. If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.
+#' @return A data frame with accession passport data for specified crop in \code{crop} from the locations in \code{ori} if specified.
+#' @details The list of available crops can be fetched from ICARDA's Genebank database using \code{\link[icardaFIGSr]{getCrops}}.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
 #' @examples
 #' \dontrun{
-#' if(interactive()){
 #'  # Obtain accession data for durum wheat
 #'  durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
 #'  }
-#' }
-#' @rdname getAccessions
-#' @export
+#' @name getAccessions
 #' @importFrom httr handle POST content
+#' @export
 
 getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = FALSE, collectionYear = FALSE,  coor = FALSE, available = FALSE, other_id = FALSE) {
   
@@ -120,7 +91,7 @@ getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = F
     if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
       .authenticate()
     }
-      
+    
     credentials <- get(".credentials", envir = .icardaFIGSEnv)
     
     username <- credentials$username
@@ -153,40 +124,12 @@ getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = F
   return(res)
 }
 
-
-#' @title Getting Traits Associated with Crops from the ICARDA's Genebank Documentation System
+#' @title Getting Traits Associated with Crops from the ICARDA's Genebank Database
 #' @description Return a data frame containing traits associated with a particular crop, their description and related identifiers.
 #' @param crop character. Crop for which to get available traits.
 #' @return A data frame with traits that are associated with the crop specified in \code{crop}.
-#' @details \code{getTraits} returns a data frame of traits together with their IDs and coding system used for each trait.
-#'
-#' Possible inputs for \code{crop} include:
-#' \itemize{
-#'   \item{'Aegilops'}
-#'   \item{'Barley'}
-#'   \item{'Bread wheat'}
-#'   \item{'Chickpea'}
-#'   \item{'Durum wheat'}
-#'   \item{'Faba bean'}
-#'   \item{'Faba bean BPL'}
-#'   \item{'Forage and range'}
-#'   \item{'Lathyrus'}
-#'   \item{'Lentil'}
-#'   \item{'Medicago annual'}
-#'   \item{'Not mandate cereals'}
-#'   \item{'Pisum'}
-#'   \item{'Primitive wheat'}
-#'   \item{'Trifolium'}
-#'   \item{'Vicia'}
-#'   \item{'Wheat hybrids'}
-#'   \item{'Wheat wild relatives'}
-#'   \item{'Wild Cicer'}
-#'   \item{'Wild Hordeum'}
-#'   \item{'Wild Lens'}
-#'   \item{'Wild Triticum'}
-#'  }
-#'
-#'  A list of available crops to use as input for \code{crop} can also be obtained from ICARDA's online server using \code{\link[icardaFIGSr]{getCrops}}.
+#' @details \code{getTraits} returns a data frame of traits together with their IDs and descriptions.
+#' The list of available crops to use as input for \code{crop} can be fetched from ICARDA's Genebank database using \code{\link[icardaFIGSr]{getCrops}}.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
 #' @examples
 #' \dontrun{

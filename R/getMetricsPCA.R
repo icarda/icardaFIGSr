@@ -9,7 +9,7 @@
 #' @details Works with target variables that have two, three, four, six or eight classes. Similar to \code{\link[icardaFIGSr]{getMetrics}} but used in the case where models have been run with PCA specified as an option for the \code{preProcess} argument in the \code{train} function of \code{caret}.
 #' @author Khadija Aziz, Zainab Azough, Zakaria Kehel, Bancy Ngatia
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  # Obtain predictions from several previously run models
 #'  dataX <- subset(data, select = -y)
 #'  pred.knn <- predict(model.knn, newdata = dataX)
@@ -31,9 +31,9 @@
 #' @seealso
 #'  \code{\link[caret]{confusionMatrix}},
 #'  \code{\link[caret]{predict.train}}
-#' @rdname getMetricsPCA
-#' @export
+#' @name getMetricsPCA
 #' @importFrom caret confusionMatrix predict.train
+#' @export
 
 getMetricsPCA <- function(yhat, y, classtype, model) {
   cm = caret::confusionMatrix(y, caret::predict.train(model, yhat))
@@ -74,7 +74,12 @@ getMetricsPCA <- function(yhat, y, classtype, model) {
     
     table1 = as.data.frame.matrix(cm$table)
     measures = rbind(accu[1], ci[1], nir[1], pval[1], kap[1])
-    values = rbind(as.character(as.factor(accu$values)), as.character(as.factor(ci$values)), as.character(as.factor(nir$values)), format(as.numeric(as.character(pval$values), 3)), as.character(as.factor(kap$values)))
+    values = rbind(as.character(as.factor(accu$values)),
+                   as.character(as.factor(ci$values)),
+                   as.character(as.factor(nir$values)),
+                   format(as.numeric(as.character(pval$values), 3)),
+                   as.character(as.factor(kap$values)))
+    
     metrics.df = as.data.frame(values)
     row.names(metrics.df)<- measures$measures
     colnames(metrics.df) <- "Metrics"

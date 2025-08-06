@@ -2,7 +2,7 @@
 % Please edit documentation in R/mapAccessions.R
 \name{mapAccessions}
 \alias{mapAccessions}
-\title{Plotting Accessions on Map.}
+\title{Plotting Accessions on Map}
 \usage{
 mapAccessions(df, long, lat, y = NULL)
 }
@@ -22,7 +22,7 @@ A world map with plotted points showing locations of accessions.
 this function returns a map with points showing where accessions are located.
 }
 \examples{
-if(interactive()){
+\dontrun{
  # Loading FIGS subset for wheat sodicity resistance
  data(FIGS)
  # World Map showing locations of accessions

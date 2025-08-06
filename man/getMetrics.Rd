@@ -2,7 +2,7 @@
 % Please edit documentation in R/getMetrics.R
 \name{getMetrics}
 \alias{getMetrics}
-\title{Performance Measures}
+\title{Performance Measures for classification tasks}
 \usage{
 getMetrics(y, yhat, classtype)
 }
@@ -27,7 +27,7 @@ The function relies on the \code{caret} package to obtain the confusion matrix f
 Predictions have to be obtained beforehand and used as input for \code{yhat}. The \code{predict.train} function in \code{caret} should be run without argument \code{type} when obtaining the predictions.
 }
 \examples{
-if(interactive()){
+\dontrun{
 # Obtain predictions from previous models
  
 data(septoriaDurumWC)  
@@ -49,5 +49,5 @@ metrics.nnet <- getMetrics(y = data.test$ST_S, yhat = pred.nnet, classtype = 2)
 \code{\link[caret]{confusionMatrix}}
 }
 \author{
-Zakaria Kehel, Bancy Ngatia, Khadija Aziz
+Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
 }

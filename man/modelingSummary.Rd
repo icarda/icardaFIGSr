@@ -59,17 +59,17 @@ modelingSummary is an automatic function for modeling data, it returns a datafra
 Types of classification and regression models available for use with \code{tuneTrain} can be found using \code{names(getModelInfo())}. The results given depend on the type of model used.
 }
 \examples{
-if(interactive()){
+\dontrun{
  data(septoriaDurumWC)
  models <- modelingSummary(data = septoriaDurumWC, y = "ST_S", positive = "R", classtype = 2)
 }
 }
 \seealso{
 \code{\link[caret]{createDataPartition}},
- \code{\link[caret]{trainControl}},
- \code{\link[caret]{train}},
- \code{\link[caret]{predict.train}},
- \code{\link[caret]{confusionMatrix}}
+\code{\link[caret]{trainControl}},
+\code{\link[caret]{train}},
+\code{\link[caret]{predict.train}},
+\code{\link[caret]{confusionMatrix}}
 }
 \author{
 Zakaria Kehel, Khadija Aziz

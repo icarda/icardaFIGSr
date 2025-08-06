@@ -5,10 +5,10 @@
 \alias{durumWC}
 \title{durumWC}
 \format{
-The data includes the site unique identifier, longitude, latitude and 55 worldclim data \href{https://www.worldclim.org}{worldclim}
+The data includes the site unique identifier, longitude, latitude and 55 worldclim data \href{https://www.worldclim.org/data/worldclim21.html#bio_10m}{worldclim}
 }
 \usage{
-data(durumWC)
+data("durumWC")
 }
 \description{
 200 sites from durum wheat collection and their world clim data.
@@ -16,7 +16,7 @@ data(durumWC)
 \examples{
 if(interactive()){
  # Load durum wheat data with world climatic variables obtained from WorldClim database
- data(durumWC)
+ data("durumWC")
  }
 }
 \keyword{datasets}

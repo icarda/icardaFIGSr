@@ -14,7 +14,7 @@
 #' If \code{y} is numeric, the data is split into groups based on percentiles and the sampling done within these subgroups. See \code{\link[caret]{createDataPartition}} for more details on additional arguments that can be passed.
 #' @author Zakaria Kehel, Bancy Ngatia
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  # Split the data into 70/30 train and test sets for factor y
 #'  data(septoriaDurumWC)
 #'  split.data <- splitData(septoriaDurumWC, seed = 1234,
@@ -26,9 +26,9 @@
 #' }
 #' @seealso
 #'  \code{\link[caret]{createDataPartition}}
-#' @rdname splitData
-#' @export
+#' @name splitData
 #' @importFrom caret createDataPartition
+#' @export
 
 splitData <- function(data, seed = NULL, y, p, ...) {
 

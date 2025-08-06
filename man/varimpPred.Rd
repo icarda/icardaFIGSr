@@ -7,91 +7,72 @@
 varimpPred(
   newdata,
   y,
-  positive,
+  positive = NULL,
   model,
   scale = FALSE,
   auc = FALSE,
   predict = FALSE,
+  type = "prob",
   ...
 )
 }
 \arguments{
-\item{newdata}{object of class "data.frame" having test data.}
+\item{newdata}{A data frame. The test dataset.}
 
-\item{y}{character. Target variable.}
+\item{y}{A character string. The name of the target variable.}
 
-\item{positive}{character. The positive class for the target variable if y is factor. Usually, it is the first level of the factor.}
+\item{positive}{A character string. The positive class for the target variable if \code{y} is a factor. Default: \code{NULL}.}
 
-\item{model}{expression. The model object returned after training a model on training data.}
+\item{model}{A model object. The trained model returned by \code{caret::train}.}
 
-\item{scale}{boolean. If \code{TRUE}, scales the variable importance values to between 0-100. Default: FALSE.}
+\item{scale}{A logical value. If \code{TRUE}, scales the variable importance values to between 0-100. Default: \code{FALSE}.}
 
-\item{auc}{boolean. If \code{TRUE}, calculates the area under the ROC curve and returns the value. Default: FALSE.}
+\item{auc}{A logical value. If \code{TRUE}, calculates the area under the ROC curve (AUC) for classification models. Default: \code{FALSE}.}
 
-\item{predict}{boolean. If \code{TRUE}, calculates class probabilities and returns them as a data frame. Default: FALSE}
+\item{predict}{A logical value. If \code{TRUE}, calculates predictions or class probabilities. Default: \code{FALSE}.}
 
-\item{...}{additional arguments to be passed to \code{varImp} function in the package \code{caret}.}
+\item{type}{A character string. The type of prediction, e.g., \code{"prob"} or \code{"raw"}. Default: \code{"prob"}.}
+
+\item{...}{Additional arguments to be passed to \code{caret::varImp}.}
 }
 \value{
-A list object with importance measures for variables in \code{newdata}, predictions for regression models, class probabilities for classification models, and corresponding plots.
-
-\code{newdata} should be either the test data that remains after splitting whole data into training and test sets, or a new data set different from the one used to train the model.
-
-If \code{y} is factor, class probabilities are calculated for each class. If \code{y} is numeric, predicted values are calculated.
-
-A ROC curve is created if \code{predict = TRUE} and \code{y} is factor. Otherwise, a plot of residuals versus predicted values is created if \code{y} is numeric.
-
-\code{varimpPred} relies on packages \code{caret}, \code{ggplot2} and \code{plotROC} to perform the calculations and plotting.
+A list containing variable importance scores, predictions, class probabilities, and corresponding plots.
+\itemize{
+\item For classification models, class probabilities and ROC curves are included if \code{predict = TRUE}.
+\item For regression models, predictions and residuals vs. predicted plots are included if \code{predict = TRUE}.
+}
 }
 \description{
-varimpPred calculates Variable Importance and makes predictions, it returns a list containing a data frame of variable importance scores, predictions or class probabilities, and corresponding plots.
+\code{varimpPred} calculates variable importance and makes predictions. It returns a list containing a data frame of variable importance scores, predictions or class probabilities, and corresponding plots.
 }
 \details{
-The importance measure for each variable is calculated based on the type of model.
+This function uses \code{caret}, \code{ggplot2}, and \code{plotROC} for calculations and plotting. Variable importance is calculated based on the type of model.
 
-For example for linear models, the absolute value of the t-statistic of each parameter is used in the importance calculation.
-
-For classification models, with the exception of classification trees, bagged trees and boosted trees, a variable importance score is calculated for each class. See \code{\link[caret]{varImp}} for details on model-specific metrics.
-
-\code{varimpPred} can be used to obtain either variable importance metrics, predictions, class probabilities, or a combination of these.
-
-For classification models with \code{predict = TRUE}, class probabilities and ROC curve are given in the results.
-
-For regression models with \code{predict = TRUE}, predictions and residuals versus predicted plot are given.
+For example, for regression models, the absolute value of the t-statistic of each parameter is used in the importance calculation.
+For classification models, a variable importance score is calculated for each class (except for some tree-based methods).
+See \code{caret::varImp} for details.
 }
 \examples{
-if(interactive()){
- # Calculate variable importance for classification model
- data("septoriaDurumWC")
- knn.mod <- tuneTrain(data = septoriaDurumWC,y = 'ST_S',method = 'knn')
- testdata <- knn.mod$`Test Data`
- knn.varimp<- varimpPred(newdata = testdata, y='ST_S', positive = 'R', model = knn.mod$Model)
- knn.varimp
- 
- # Calculate variable importance and obtain class probabilities
- data("septoriaDurumWC")
- svm.mod <- tuneTrain(data = septoriaDurumWC, y = 'ST_S',method = 'svmLinear2',
-                   predict = TRUE, positive = 'R',summary = twoClassSummary)
- testdata <- svm.mod$`Test Data`
- svm.varimp <- varimpPred(newdata = testdata, y = 'ST_S',
-                          positive = 'R', model = svm.mod$Model,
-                          ROC = TRUE, predict = TRUE)
- svm.varimp
- # Obtain variable importance plot for only first 20 variables
- # with highest measure
- svm.varimp <- varimpPred(newdata = testdata, y = 'ST_S',
-                          positive = 'R', model = svm.mod$Model,
-                          ROC = TRUE, predict = TRUE, top = 20)
- svm.varimp
- }
+\dontrun{
+  # Example for classification model
+  data("septoriaDurumWC")
+  knn.mod <- caret::train(ST_S ~ ., data = septoriaDurumWC, method = "knn")
+  testdata <- septoriaDurumWC
+  knn.varimp <- varimpPred(newdata = testdata, y = "ST_S", positive = "R", model = knn.mod)
+  print(knn.varimp)
+
+  # Example with SVM and ROC curve
+  svm.mod <- caret::train(ST_S ~ ., data = septoriaDurumWC, method = "svmLinear2",
+   metric = "Accuracy")
+  testdata <- septoriaDurumWC
+  svm.varimp <- varimpPred(newdata = testdata, y = "ST_S", positive = "R", model = svm.mod,
+   auc = TRUE, predict = TRUE)
+  print(svm.varimp)
+}
 }
 \seealso{
-\code{\link[caret]{varImp}},
- \code{\link[caret]{predict.train}},
- \code{\link[ggplot2]{ggplot}},
- \code{\link[plotROC]{geom_roc}},
- \code{\link[plotROC]{calc_auc}}
+\code{\link[caret]{varImp}}, \code{\link[caret]{predict.train}}
 }
 \author{
-Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Zainab Azough
+Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Zainab Azough, Chafik Analy
 }

@@ -1,14 +1,14 @@
-#' @title Plotting Accessions on Map. 
-#' @description this function returns a map with points showing where accessions are located.
+#' @title Plotting Accessions on Map
+#' @description this function returns a map with points showing where accessions have been collected.
 #' @param df object of class "data.frame" with coordinates of accessions and target variable.
 #' @param long character. Column name from \code{df} representing longitude.
 #' @param lat character. Column name from \code{df} representing latitude.
 #' @param y Default: NULL, column name from \code{df} representing the target variable.
-#' @return A world map with plotted points showing locations of accessions.
+#' @return A world map with plotted points showing accessions collecting sites.
 #'
 #' @author Khadija Aouzal, Zakaria Kehel
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'  # Loading FIGS subset for wheat sodicity resistance
 #'  data(FIGS)
 #'  # World Map showing locations of accessions
@@ -23,27 +23,25 @@
 #'  mapAccessions(FIGS, long = "Longitude", lat = "Latitude", 
 #'  y = "PopulationType")
 #'  }
-#' @rdname mapAccessions
-#' @export
+#' @name mapAccessions
 #' @import leaflet 
-
+#' @export
 
 
 mapAccessions <- function(df, long, lat, y = NULL){
   
   if(is.null(y)) {
-    leaflet::leaflet() %>% leaflet::addTiles() %>% 
-      leaflet::addProviderTiles('Esri.WorldTopoMap')  %>%
+    leaflet::leaflet() %>% 
+      leaflet::addProviderTiles('Esri.WorldGrayCanvas')  %>%
       leaflet::addCircleMarkers(data = df, lng = df[[long]], lat = df[[lat]],
                                 color = "#2d7436",
-                                radius = 5,
+                                radius = 1.5,
                                 fill = TRUE,
                                 fillColor = "#2d7436",
                                 fillOpacity = 0.2, weight = 2) 
-  }
-  else {
+  } else {
     ## omit NAs in y column
-    df.na.omit <- df[!is.na(df[[y]]), ] 
+    df.na.omit <- df[!is.na(df[[y]]), ]
     
     if (is.numeric(df[[y]])){
       pal <- leaflet::colorNumeric(
@@ -51,34 +49,33 @@ mapAccessions <- function(df, long, lat, y = NULL){
         domain = df[[y]],
         na.color = "#808080"
       )
-    }
-    else {
+    } else {
       pal <- leaflet::colorFactor(
-        palette = c("#2d7436", "#ED7506"),
+        palette = 'Dark2',
         domain = df[[y]],
         na.color = "#808080"
       )
     }
     
-    leaflet::leaflet() %>% leaflet::addTiles() %>% 
-      leaflet::addProviderTiles('Esri.WorldTopoMap')  %>%
+    leaflet::leaflet() %>% 
+      leaflet::addProviderTiles('Esri.WorldGrayCanvas')  %>%
       leaflet::addCircleMarkers(data = df.na.omit, lng = df.na.omit[[long]], lat = df.na.omit[[lat]],
                                 color = ~pal(df.na.omit[[y]]),
-                                radius = 5,
+                                radius = 1.5,
                                 fill = TRUE,
                                 fillColor = ~pal(df.na.omit[[y]]),
                                 label = ~df.na.omit[[y]],
-                                fillOpacity = 0.2, weight = 2, group = "withoutNAs") %>%
+                                fillOpacity = 1, weight = 2, group = "without NAs") %>%
       leaflet::addCircleMarkers(data = df, lng = df[[long]], lat = df[[lat]],
                                 color = ~pal(df[[y]]),
-                                radius = 5,
+                                radius = 1.5,
                                 fill = TRUE,
                                 fillColor = ~pal(df[[y]]),
                                 label = ~df[[y]],
-                                fillOpacity = 0.2, weight = 2, group = "withNAs") %>%
+                                fillOpacity = 1, weight = 2, group = "with NAs") %>%
       leaflet::addLegend("bottomright", pal = pal, values = df[[y]], opacity = 1,  title = y) %>%
-      addLayersControl(baseGroups = c("withNAs","withoutNAs"),
-                       options = layersControlOptions(collapsed = FALSE))
+      leaflet::addLayersControl(baseGroups = c("with NAs","without NAs"),
+                       options = leaflet::layersControlOptions(collapsed = FALSE))
     
   }
 }

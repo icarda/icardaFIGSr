@@ -1,0 +1,343 @@
+---
+title: "Predictive Modeling using tuneTrain()"
+author: "Chafik Analy, Khadija Aouzal, Zakaria Kehel"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    self_contained: true
+vignette: >
+  %\VignetteIndexEntry{Predictive Modeling using tuneTrain()}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+description: >
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  fig.height = 6, fig.width = 7,
+  collapse = TRUE,
+  comment = "#>",
+  warning = FALSE, message = FALSE
+)
+```
+
+### Binary classification: balanced data
+
+`septoriaDurumWC` dataset is used to illustrate the binary classification of balanced data. This dataset includes monthly data for 3 climatic variables (tmin, tmax and precipitation), 19 bioclimatic variables and evaluation of durum wheat accessions for Septoria Tritici. 
+
+The response to Septoria Tritici is labeled as `R` for `Resistant` and `S` for `Susceptible`.
+
+* **R (Resistant):** represents samples/observations that are resistant to Septoria. This level indicates the wheat genotypes or environmental conditions where Septoria's impact is minimal or absent.
+* **S (Susceptible):** represents samples/observations that are susceptible to Septoria. This level indicates the wheat genotypes or environmental conditions where Septoria's impact is significant.
+<!-- 
+```{r}
+library(icardaFIGSr)
+library(dplyr)
+
+data("septoriaDurumWC")
+
+septoriaDurumWC|>
+   count(ST_S)
+```
+ -->
+
+```{r}
+library(icardaFIGSr)
+library(dplyr)
+library(pROC)
+library(caret)
+
+# Load data sample
+data("septoriaDurumWC")
+
+# Check data is balanced
+septoriaDurumWC |>
+  count(ST_S)
+
+## Run binary classification of ST_S with balanced data
+knn.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
+                      y =  'ST_S',
+                      method = 'knn', # using knn algorithm
+                      summary = multiClassSummary, # Important for classification tasks
+                      repeats = 3,
+                      classProbs = TRUE) # also important for classification tasks
+```
+
+Let's explore the results..
+
+<!-- ```{r }
+# Class probabilities table
+knn.ST_S$`Class Probabilities`
+``` -->
+
+```{r, fig.cap = "Class Probabilities for ST_S using KNN"}
+# Plot class probabilities
+knn.ST_S$`Class Probabilities Plot`
+
+```
+
+```{r, fig.cap = "Roc Plot for ST_S using KNN"}
+# ROC plot
+knn.ST_S$ROC_Plot
+
+```
+
+```{r, fig.cap = "Variable Importance for ST_S using KNN"}
+# Variable importance
+knn.ST_S$VariableImportance
+```
+
+
+```{r} 
+# Model quality
+knn.ST_S$`Model quality`
+
+# Training object
+knn.ST_S$Training
+
+# Tuning object
+knn.ST_S$Tuning
+
+```
+
+> *Note the difference between Model Training and Tuning objects at the end of the output. The final hyperparameter value is different (6 vs 7).*
+
+   
+```r 
+# You can also access the training and testing datasets from the resulted list
+knn.ST_S$`Training Data`
+knn.ST_S$`Test Data` 
+```
+
+### Binary classification: imbalanced data
+
+`BarleyRNOWC` dataset is used to illustrate the binary classification of imbalanced data, with the purpose of modeling the response classification of barley Kernel row number type to climate variables. 
+
+The response variable RNO categorizes barley into the following levels:
+
+* **1 (Six-rowed):** represents barley genotypes with six distinct rows of kernels on the spike.
+* **2 (Two-rowed):** represents barley genotypes with two distinct rows of kernels on the spike.
+* **3 (Two-rowed - rudimentary florets):** represents two-rowed barley with underdeveloped or rudimentary florets.
+* **4 (Irregular lateral florets):** represents barley genotypes with irregularly developed lateral florets on the spike.
+* **5 (Irregular: 2 and 6 rows):** represents heterogeneous genotypes showing spikes with both two-rowed and six-rowed characteristics.
+* **10 (Heterogeneous):** represents a genetically diverse group with mixed spike structures.
+
+For this example, we use only the first 2 categories : `six-rowed` (cl_1) and `two-rowed` (cl_2).
+
+```{r}
+# Load sample data
+data(BarleyRNOWC)
+
+# Count classes for data imbalance check
+BarleyRNOWC %>%
+  count(RNO)
+
+## Binary classification of RNO
+rf.RNO <- tuneTrain(data = BarleyRNOWC,
+                      y = 'RNO',
+                      method = 'rf',
+                      summary = multiClassSummary,
+                      imbalanceMethod = "up",
+                      imbalanceThreshold = 0.2,
+                      process = c("scale", "center"),
+                      classProbs = TRUE,
+                      repeats = 3)
+
+# same outputs of binary classification task
+names(rf.RNO)
+```
+
+```{r, fig.cap = "Class Probabilities for RNO using Random Forest"}
+## Plot class probabilities
+rf.RNO$`Class Probabilities Plot`
+
+```
+
+```{r, fig.cap = "Roc Plot for RNO using Random Forest"}
+## ROC plot
+rf.RNO$ROC_Plot
+
+```
+
+```{r, fig.cap = "Variable Importance for RNO using Random Forest"}
+## Variable importance
+rf.RNO$VariableImportance
+```
+
+### Regression
+
+`DurumWheatDHEWC` dataset is designed for modeling climate impacts on the days to heading (DHE) of durum wheat. It contains multiple columns representing climate variables, which are used as predictors, and a numeric response variable, DHE, which indicates the number of days required for durum wheat to reach the heading stage.
+
+```{r}
+# Load sample data for regression task
+data("DurumWheatDHEWC")
+
+## Regression of DHE (days to heading)
+svm.DHE <- tuneTrain(data = DurumWheatDHEWC,
+                      y =  'DHE',
+                      method = 'svmLinear2',
+                      summary = defaultSummary,
+                      classProbs = FALSE,
+                      repeats = 3)
+
+# Regression outputs
+names(svm.DHE)
+```
+
+```{r, fig.cap = "Variable Importance for DHE"}
+svm.DHE$VariableImportance
+
+```
+
+```{r, fig.cap = "Predicted vs Actual DHE"}
+svm.DHE$Quality_metrics
+svm.DHE$`Predicted vs Actual Plot`
+
+```
+
+```{r, fig.cap = "Residuals vs predicted DHE"}
+svm.DHE$`Residuals Vs. Predicted Plot`
+
+```
+
+### Multiclass classification
+
+In this case, we use the same `DurumWheatDHEWC` dataset to create days to heading classes variable (DHE_Class) to fit a multiclass model. DHE_classes are descibed as follows:
+
+* **1 (Early):** Represents samples/observations with early days to heading, indicating adaptability to shorter growing seasons or favorable early-season conditions.
+* **2 (Intermediate):** Represents samples/observations with moderate days to heading, indicating typical or average responses under given environmental conditions.
+* **3 (Late):** Represents samples/observations with late days to heading, suggesting adaptability to longer growing seasons or late-season conditions.
+
+```{r} 
+# Create DHE Classes from DurumWheatDHEWC dataset
+DurumWheatDHEWC$DHE_class <- ifelse(
+  DurumWheatDHEWC$DHE <= 172, "1",
+  ifelse(DurumWheatDHEWC$DHE <= 180, "2", "3")
+ )
+ 
+# Convert to factor 
+DurumWheatDHEWC$DHE_class <- factor(DurumWheatDHEWC$DHE_class)
+   
+# Count classes for data imbalance check
+DurumWheatDHEWC %>%
+   count(DHE_class)
+
+```
+
+```{r}
+## Run Multiclass Classification
+rf.DHE_class <- tuneTrain(data = DurumWheatDHEWC,
+                              y =  'DHE_class',
+                              method = 'rf',
+                              parallelComputing = TRUE,
+                              summary = multiClassSummary,
+                              imbalanceMethod ="up", # Here we upsample the less represented class (3)
+                              imbalanceThreshold = 0.2,
+                              classProbs = TRUE,
+                              repeats = 3)
+# List returned objects
+names(rf.DHE_class)
+rf.DHE_class$`Model quality`
+rf.DHE_class$`Probabilities_Plot`
+```
+
+## splitData()
+
+```{r}
+
+# Subset septoriaDurumWC where column names having 3, ex tmin3, prec13
+septoriaDurumWC_subset <- icardaFIGSr::septoriaDurumWC|>
+  dplyr::select(ST_S,contains("3"))
+
+# split data
+septoriaDurumWC_subset_split <- icardaFIGSr::splitData(septoriaDurumWC,
+                        seed = 123, y="ST_S", p=0.7)
+
+# Check results
+names(septoriaDurumWC_subset_split)
+```
+
+## getMetrics()
+
+```{r fig.cap = "getMetrics outputs for ST_S knn"}
+
+# Call the ST_S knn model fitted in tunTrain function section
+
+data.test <- knn.ST_S$`Test Data`
+
+pred.ST_S <- predict(knn.ST_S$Tuning, newdata = data.test[ , -1])
+
+metrics.knn.ST_S <- getMetrics(y = data.test$ST_S,
+                                       yhat = pred.ST_S, classtype = 2)
+
+metrics.knn.ST_S
+```
+
+## getMetricsPCA()
+
+Please run below code chunk to test `getMetricsPCA()` on any model rutrned by `tuneTrain()`.
+
+```{r}
+
+## Run Binary classification of ST_S with balanced data using random forest
+rf.ST_S <- tuneTrain(
+                      data = as.data.frame(septoriaDurumWC),
+                      y =  'ST_S',
+                      method = 'rf', # using rf algorithm
+                      summary = multiClassSummary, # Important for classification tasks  
+                      parallelComputing = T,
+                      repeats = 3,
+                      process = c("center","scale"),
+                      classProbs = TRUE) # Important for classification tasks
+
+# get test data from one of the model to be used for prediction
+data.test <- rf.ST_S$`Test Data`
+
+# Obtain predictions from previously run models : knn.ST_S and rf.ST_S
+pred.knn.ST_S <- predict(knn.ST_S$Tuning, newdata = data.test[ , -1])
+pred.rf.ST_S <- predict(rf.ST_S$Tuning, newdata = data.test[ , -1])
+
+# Get metrics for your model using computed metrics.knn.ST_S
+metrics.knn.ST_S <- metrics.knn.ST_S
+metrics.rf.ST_S <- icardaFIGSr::getMetrics(y = data.test$ST_S,
+                         yhat = pred.rf.ST_S, classtype = 2)
+
+# Indexing for 2-class models to remove extra column with
+# names of performance measures
+metrics.all <- cbind(metrics.knn.ST_S, metrics.rf.ST_S)
+  
+## check data structure
+metrics.all
+  
+```
+
+
+```{r}
+metrics.all[1,1]
+```
+
+```{r} 
+metrics.all[2,1]
+
+```
+
+## make_prediction()
+
+`make_prediction()` returns predictions or classes probabilities and corresponding plots.
+
+```{r}
+# Make prediction for septoriaDurumWC using the previous tuning model knn.ST_S$Tuning
+
+data("septoriaDurumWC")
+
+septoriaDurumWC <- as.data.frame(septoriaDurumWC)
+
+knn.pred <- make_prediction(newdata = septoriaDurumWC,
+                                      y='ST_S',
+                                      model = knn.ST_S$Tuning,
+                                      positive = "R",
+                                      auc = TRUE)
+
+names(knn.pred)
+```
+

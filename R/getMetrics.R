@@ -1,5 +1,4 @@
-
-#' @title Performance Measures
+#' @title Performance Measures for classification tasks
 #' @description this function allows to obtain performance measures from Confusion Matrix, it returns a data frame containing performance measures from the confusion matrix given by the \code{caret} package.
 #' @param y expression. The class variable.
 #' @param yhat expression. The vector of predicted values.
@@ -10,30 +9,30 @@
 #' The function relies on the \code{caret} package to obtain the confusion matrix from which performance measures are extracted. It can be run for several algorithms, and the results combined into one data frame for easier comparison (see section 'Examples').
 #'
 #' Predictions have to be obtained beforehand and used as input for \code{yhat}. The \code{predict.train} function in \code{caret} should be run without argument \code{type} when obtaining the predictions.
-#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz
+#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
 #' @examples
-#' if(interactive()){
+#' \dontrun{
 #'# Obtain predictions from previous models
 #'  
-#'data(septoriaDurumWC)  
-#'split.data <- splitData(septoriaDurumWC, seed = 1234, y = "ST_S", p = 0.7)
-#'data.train <- split.data$trainset
-#'data.test <- split.data$testset
+#' data(septoriaDurumWC)  
+#' split.data <- splitData(septoriaDurumWC, seed = 1234, y = "ST_S", p = 0.7)
+#' data.train <- split.data$trainset
+#' data.test <- split.data$testset
 #'
-#'knn.mod <- tuneTrain(data = septoriaDurumWC,y = 'ST_S',method = 'knn',positive = 'R')
-#'nnet.mod <- tuneTrain(data = septoriaDurumWC,y = 'ST_S',method = 'nnet',positive = 'R') 
+#' knn.mod <- tuneTrain(data = septoriaDurumWC,y = 'ST_S',method = 'knn',positive = 'R')
+#' nnet.mod <- tuneTrain(data = septoriaDurumWC,y = 'ST_S',method = 'nnet',positive = 'R') 
 #'
-#'pred.knn <- predict(knn.mod$Model, newdata = data.test[ , -1])
-#'pred.nnet <- predict(nnet.mod$Model, newdata = data.test[ , -1])
+#' pred.knn <- predict(knn.mod$Model, newdata = data.test[ , -1])
+#' pred.nnet <- predict(nnet.mod$Model, newdata = data.test[ , -1])
 #'
-#'metrics.knn <- getMetrics(y = data.test$ST_S, yhat = pred.knn, classtype = 2)
-#'metrics.nnet <- getMetrics(y = data.test$ST_S, yhat = pred.nnet, classtype = 2)
+#' metrics.knn <- getMetrics(y = data.test$ST_S, yhat = pred.knn, classtype = 2)
+#' metrics.nnet <- getMetrics(y = data.test$ST_S, yhat = pred.nnet, classtype = 2)
 #' }
 #' @seealso
 #'  \code{\link[caret]{confusionMatrix}}
-#' @rdname getMetrics
-#' @export
+#' @name getMetrics
 #' @importFrom caret confusionMatrix
+#' @export
 
 getMetrics <- function(y, yhat, classtype) {
   cm = caret::confusionMatrix(xtabs(~ yhat + y))

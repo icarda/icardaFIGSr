@@ -10,42 +10,39 @@
 #' @param repeats integer. Number of folds for repeated k-fold cross-validation if "repeatedcv" is chosen as the resampling method in \code{control}. Default: 10.
 #' @param summary expression. Computes performance metrics across resamples. For numeric \code{y}, the mean squared error and R-squared are calculated. For factor \code{y}, the overall accuracy and Kappa are calculated. See \code{\link[caret]{trainControl}} and \code{\link[caret]{defaultSummary}} for details on specification and summary options. Default: multiClassSummary.
 #' @param process character. Defines the pre-processing transformation of predictor variables to be done. Options are: "BoxCox", "YeoJohnson", "expoTrans", "center", "scale", "range", "knnImpute", "bagImpute", "medianImpute", "pca", "ica", or "spatialSign". See \code{\link[caret]{preProcess}} for specific details on each pre-processing transformation. Default: c('center', 'scale').
-#' @param positive character. The positive class for the target variable if \code{y} is factor. Usually, it is the first level of the factor.
 #' @param parallelComputing logical. indicates whether to also use the parallel processing. Default: False
 #' @param classtype integer.indicates the number of classes of the traits.
 #' @param ... additional arguments to be passed to \code{createDataPartition}, \code{trainControl} and \code{train} functions in the package \code{caret}.
 #' @param imbalanceMethod Method for handling imbalanced data ("up", "down"). Default: NULL.
 #' @param imbalanceThreshold Threshold to determine if data is imbalanced (numeric between 0 and 0.4). Default: 0.2.
+#' @param classProbs a logical (default : TRUE assuming classification task). It should be set to FALSE for regression tasks in conjunction with \code{summary} argument set to "defaultSummary". See examples for more details.
 
-#' @return A list object with results from tuning and training the model selected in \code{method}, together with predictions and class probabilities. The training and test data sets obtained from splitting the data are also returned.
+#' @return A list object with results from tuning and training the model selected in \code{method}, together with predictions and class probabilities. The training and test data sets obtained from splitting the data are also returned in addition to model quality metrics and preformance plots.
 #'
 #' If \code{y} is factor, class probabilities are calculated for each class. If \code{y} is numeric, predicted values are calculated.
 #'
 #' A ROC curve is created if \code{y} is factor. Otherwise, a plot of residuals versus predicted values is created if \code{y} is numeric.
 #'
-#' \code{tuneTrain} relies on packages \code{caret}, \code{ggplot2} and \code{plotROC} to perform the modelling and plotting.
+#' \code{tuneTrain} relies on packages \code{caret}, \code{ggplot2} and \code{pROC} to perform the modelling and plotting.
 #' @details Types of classification and regression models available for use with \code{tuneTrain} can be found using \code{names(getModelInfo())}. The results given depend on the type of model used.
 #'
 #' In addition to Model object, Model quality, Tuning and training datasets,For classification models, class probabilities and ROC curve are given in the results. For regression models, Variable importance, predictions and residuals versus predicted plot are given. \code{y} should be converted to either factor if performing classification or numeric if performing regression before specifying it in \code{tuneTrain}.
 #'
-#' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
+#' @author Chafik Analy, Khadija Aziz, Zakaria Kehel, Bancy Ngatia
 #' @examples
 #' \dontrun{
-#' #' if(interactive()){
-#' #' ## Reading local test datasets
-#' 
+#' # Reading local test datasets
 #' data(DurumWheatDHEWC)
 #' data(BarleyRNOWC)
 #' data(septoriaDurumWC)
 #' 
 #' ## Binary classification of ST_S with balanced data
-#' rf.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
+#' tree.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
 #'                      y =  'ST_S',
-#'                      method = 'rf',
+#'                      method = 'treebag',
 #'                      summary = multiClassSummary,
 #'                      repeats = 3,
 #'                      classProbs = TRUE)
-#' 
 #' 
 #' ## Binary classification of RNO with imbalanced data
 #' knn.RNO <- tuneTrain(data = BarleyRNOWC,
@@ -61,32 +58,10 @@
 #' ## Regression of DHE
 #' svm.DHE <- tuneTrain(data = DurumWheatDHEWC,
 #'                      y =  'DHE',
-#'                      method = 'knn',
+#'                      method = 'svmLinear2',
 #'                      summary = defaultSummary,
 #'                      classProbs = FALSE,
 #'                      repeats = 3)
-#' 
-#' 
-#' ## Multiclass classification of DHE Classes with imbalanced data
-#' 
-#' Create DHE Classes from DurumWheatDHEWC dataset
-#' 
-#' DurumWheatDHEWC$DHE <- ifelse(DurumWheatDHEWC$DHE <=172, "1", 
-#'                                ifelse(DurumWheatDHEWC$DHE <= 180, "2", 
-#'                                       "3"))
-#'                                        
-#' DurumWheatDHEWC$DHE <- factor(DurumWheatDHEWC$DHE)
-#'
-#' Run Classification
-#' rf.DHE.Classes <- tuneTrain(data = DurumWheatDHEWC,
-#'                              y =  'DHE',
-#'                              method = 'rf',
-#'                              summary = multiClassSummary,
-#'                              imbalanceMethod ="up",
-#'                              imbalanceThreshold = 0.2,
-#'                              classProbs = TRUE,
-#'                              repeats = 3)
-#' 
 #'  }
 #' @seealso
 #'  \code{\link[caret]{createDataPartition}},
@@ -95,22 +70,21 @@
 #'  \code{\link[caret]{predict.train}},
 #'  \code{\link[ROSE]{ovun.sample}},
 #'  \code{\link[ggplot2]{ggplot}},
-#'  \code{\link[pRoc]{auc}},
-#'  \code{\link[pRoc]{roc}},
-#'  \code{\link[pRoc]{ggroc}},
-#' @rdname tuneTrain
-#' @export
-#' @importFrom caret createDataPartition trainControl train predict.train confusionmatrix Preprocess
+#'  \code{\link[pROC]{auc}},
+#'  \code{\link[pROC]{roc}},
+#'  \code{\link[pROC]{ggroc}},
+#' @name tuneTrain
+#' @importFrom caret createDataPartition trainControl train predict.train
 #' @importFrom utils stack
 #' @importFrom ggplot2 ggplot aes geom_histogram theme_bw scale_colour_brewer scale_fill_brewer labs coord_equal annotate geom_point
-#' @importFrom stats resid
-#' @importFrom ROSE ovun.sample
-#' @umportFrom pRoc auc roc ggroc
-#' @details Imbalance handling methods "up" and "down" use ,respectively, upsample() and downsample() from caret.
+#' @importFrom stats resid predict
+#' @importFrom pROC auc roc ggroc
+#' @details Imbalance handling methods "up" and "down" use ,respectively, upsample() and downsample() from caret subsampling methods.
+#' @export
 
 tuneTrain <- function(data, y, p = 0.7,
                       method = "knn",
-                      imbalanceMethod = NULL, # Imbalanced data handling
+                      imbalanceMethod = NULL, # Imbalanced data handling method
                       imbalanceThreshold = 0.2, # Threshold for imbalance handling
                       parallelComputing = FALSE,
                       control = "repeatedcv",
@@ -156,20 +130,15 @@ tuneTrain <- function(data, y, p = 0.7,
   trainy <- data.train[[y]]
   testy <- data.test[[y]]
   
-  # Load required packages
-  require(caret)
-  require(doParallel)
-  require(foreach)
-  
   # Parallel computing initialization if enabled
   if (parallelComputing) {
-    cores <- detectCores()
-    cls <- makeCluster(max(1, cores - 1)) # Reserve at least 1 core
-    registerDoParallel(cls)
+    cores <- parallel::detectCores()
+    cls <-  parallel::makeCluster(max(1, cores - 1)) # Reserve at least 1 core
+    doParallel::registerDoParallel(cls)
     
     on.exit({
       if (exists("cls")) {
-        stopCluster(cls)
+        parallel::stopCluster(cls) 
       }
     }, add = TRUE)
   }
@@ -197,38 +166,59 @@ tuneTrain <- function(data, y, p = 0.7,
   }
   
   else if (method == "nnet") {
-    tune.mod = caret::train(trainx, trainy, method = method, 
-                            tuneLength = Length, trControl = ctrl, trace = FALSE, 
-                            preProcess=process)
+    # Initial training to get the best tune parameters
+    tune.mod <- caret::train(
+      trainx, trainy, method = method,
+      tuneLength = Length, trControl = ctrl, trace = FALSE,
+      preProcess = process
+    )
     print(tune.mod)
+    
+    # Extract the best size parameter
     size <- tune.mod[["bestTune"]][["size"]]
     
-    if (size - 1 <= 0) {
-      seqStart <- size
-    }
-    else {
-      seqStart <- size - 1
-    }
+    # Dynamically calculate bounds based on predictors and rows
+    num_predictors <- ncol(trainx)
+    num_rows <- nrow(trainx)
+    min_size <- 1
+    max_size <- min(num_predictors, floor(num_rows / 10)) # Dynamic maximum size
     
-    seqStop <- size + 1
+    # Ensure seqStart and seqStop are within valid bounds
+    seqStart <- max(min_size, size - 1)
+    seqStop <- min(max_size, size + 1)
     seqInt <- 1
-    tuneGrid <- expand.grid(.size = seq(seqStart, seqStop, by=seqInt), 
-                            .decay = 0.1^(seq(0.01, 0.09, 0.01))*0.11)
     
-    ctrl2 = caret::trainControl(method = control, number = number, 
-                                repeats = repeats, classProbs = classProbs,
-                                sampling = subsampling,
-                                summaryFunction = summary)
+    # Default .decay range and steps
+    decay_start <- 10^-5
+    decay_stop <- 10^-1
+    decay_steps <- 5
+    decay_values <- 10^seq(log10(decay_start), log10(decay_stop), length.out = decay_steps)
     
-    train.mod = caret::train(trainx, trainy, method, 
-                             tuneGrid = tuneGrid, tuneLength = Length, 
-                             preProcess=process,
-                             trControl = ctrl2, trace = FALSE)
+    # Generate the tuning grid
+    tuneGrid <- expand.grid(
+      .size = seq(seqStart, seqStop, by = seqInt),
+      .decay = decay_values
+    )
+    
+    # Train control for the second model
+    ctrl2 <- caret::trainControl(
+      method = control, number = number,
+      repeats = repeats, classProbs = classProbs,
+      sampling = subsampling,
+      summaryFunction = summary
+    )
+    
+    # Final training with refined tuning grid
+    train.mod <- caret::train(
+      trainx, trainy, method = method,
+      tuneGrid = tuneGrid, tuneLength = Length,
+      preProcess = process, trControl = ctrl2, trace = FALSE
+    )
     print(train.mod)
   }
   else {
     tune.mod = caret::train(trainx, trainy, method = method,
-                            tuneLength = Length, preProcess=process,
+                            tuneLength = Length, preProcess = process,
                             trControl = ctrl)
     print(tune.mod)
     
@@ -248,16 +238,14 @@ tuneTrain <- function(data, y, p = 0.7,
     else if (method == "rf") {
       mtry <- tune.mod[["bestTune"]][["mtry"]]
       
-      if (mtry - 2 <= 0) {
-        seqStart <- mtry
-      }
-      else {
-        seqStart <- mtry - 2
-      }
-      
-      seqStop <- mtry + 2
+      # Ensure seqStart and seqStop are within valid range
+      num_predictors <- ncol(x) # Number of predictors in the dataset
+      seqStart <- max(1, mtry - 2) # Ensure seqStart is at least 1
+      seqStop <- min(num_predictors, mtry + 2) # Ensure seqStop does not exceed the number of predictors
       seqInt <- 1
-      tuneGrid <- expand.grid(.mtry = seq(seqStart, seqStop, by=seqInt))
+      
+      # Generate the tuning grid
+      tuneGrid <- expand.grid(.mtry = seq(seqStart, seqStop, by = seqInt))
     }
     else if (method == "svmLinear2") {
       cost <- tune.mod[["bestTune"]][["cost"]]
@@ -296,33 +284,33 @@ tuneTrain <- function(data, y, p = 0.7,
     # Generate histogram for class probabilities
     prob.newdf <- utils::stack(prob.mod)
     colnames(prob.newdf) <- c("Probability", "Class")
-    prob.hist <- ggplot(prob.newdf, aes(x = Probability, group=Class, colour = Class, fill = Class)) +
-      geom_histogram(alpha = 0.4, position = "identity", binwidth = 0.1) + 
-      theme_bw() + 
-      scale_colour_brewer(palette = "Dark2") + 
-      scale_fill_brewer(palette = "Dark2") + 
-      facet_wrap(~Class) +
-      labs(y = "Count")
+    prob.hist <- ggplot2::ggplot(prob.newdf, aes(x = Probability, group=Class, colour = Class, fill = Class)) +
+      ggplot2::geom_histogram(alpha = 0.4, position = "identity", binwidth = 0.1) + 
+      ggplot2::theme_bw() + 
+      ggplot2::scale_colour_brewer(palette = "Dark2") + 
+      ggplot2::scale_fill_brewer(palette = "Dark2") + 
+      ggplot2::facet_wrap(~Class) +
+      ggplot2::labs(y = "Count")
     
     # Model Evaluation
-    predictions <- predict(train.mod, newdata = testx)
+    predictions <- stats::predict(train.mod, newdata = testx)
     confMatrix <- caret::confusionMatrix(predictions, testy) 
     
     # Calculate ROC curve and AUC
-    roc_curve <- roc(response = testy, predictor = prob.mod[,2])
-    auc_value <- auc(roc_curve)
+    roc_curve <- pROC::roc(response = testy, predictor = prob.mod[,2])
+    auc_value <- pROC::auc(roc_curve)
     
     # Plot ROC curve
-    roc_plot <- ggroc(roc_curve)
-    roc_plot <- roc_plot + ggtitle(sprintf("ROC Curve (AUC = %.2f)", auc_value))
+    roc_plot <- pROC::ggroc(roc_curve)
+    roc_plot <- roc_plot + ggplot2::ggtitle(sprintf("ROC Curve (AUC = %.2f)", auc_value))
     
     
     # Return results
     results = list(
       Tuning = tune.mod, 
-      Model = train.mod, 
+      Training = train.mod, 
       `Model quality` = confMatrix,
-      Variableimportance =plot(varImp(train.mod)),
+      VariableImportance =plot(varImp(train.mod)),
       ROC_Plot = roc_plot,
       `Class Probabilities` = prob.mod, 
       `Class Probabilities Plot` = prob.hist,
@@ -332,68 +320,78 @@ tuneTrain <- function(data, y, p = 0.7,
     return(results)
   }
   
-  ## For multiclass classification
+  # For multiclass classification
   else if (is.factor(data[[y]]) && length(unique(data[[y]])) > 2) {
     
-    prob.mod <- predict(train.mod, testx, type = "prob")
+    prob.mod <- stats::predict(train.mod, testx, type = "prob")
     
-    # Check for missing values in probabilities which can indicate issues during training
+    # Check for missing values in probabilities, which can indicate issues during training
     if (any(is.na(prob.mod))) {
       warning("Missing values found in predicted probabilities.")
     }
     
-    # Multiclass ROC analysis
-    roc_results <- multiclass.roc(testy, prob.mod)
+    # Multiclass ROC analysis (one-vs-all approach)
+    roc_results <- list()
+    auc_values <- list()
+    class_names <- colnames(prob.mod)
+    
+    # Generate ROC plots and calculate AUC for each class (one-vs-all)
+    roc_plots <- list()
+    for (class_name in class_names) {
+      # Create a one-vs-all response variable
+      one_vs_all_response <- ifelse(testy == class_name, class_name, paste0("Not_", class_name))
+      
+      # Generate the ROC curve for this class
+      one_vs_all <- pROC::roc(
+        one_vs_all_response,
+        prob.mod[, class_name],
+        levels = c(paste0("Not_", class_name), class_name), # Ensure binary levels
+        direction = "<"
+      )
+      
+      # Calculate AUC
+      auc <- pROC::auc(one_vs_all)
+      auc_values[[class_name]] <- auc
+      
+      # Create the ROC plot
+      plot_title <- sprintf("ROC Curve: %s vs All (AUC = %.2f)", class_name, auc)
+      roc_plots[[class_name]] <- pROC::ggroc(one_vs_all) +
+        ggplot2::ggtitle(plot_title) +
+        ggplot2::theme_minimal() +
+        ggplot2::theme(plot.title = ggplot2::element_text(size = 10, face = "bold"))
+      
+      # Save ROC result
+      roc_results[[class_name]] <- one_vs_all
+    }
     
     # Generating histograms for class probabilities
     prob.newdf <- utils::stack(as.data.frame(prob.mod))
     colnames(prob.newdf) <- c("Probability", "Class")
-    prob.hist <- ggplot(prob.newdf, aes(x = Probability, fill = Class, color = Class)) +
-      geom_histogram(alpha = 0.4, position = "identity", binwidth = 0.05) + 
-      theme_bw() + 
-      scale_colour_brewer(palette = "Paired") + 
-      scale_fill_brewer(palette = "Paired") + 
-      facet_wrap(~ Class) +
-      labs(y = "Count")
+    prob.hist <- ggplot2::ggplot(prob.newdf, ggplot2::aes(x = Probability, fill = Class, color = Class)) +
+      ggplot2::geom_histogram(alpha = 0.4, position = "identity", binwidth = 0.05) +
+      ggplot2::theme_bw() +
+      ggplot2::scale_colour_brewer(palette = "Paired") +
+      ggplot2::scale_fill_brewer(palette = "Paired") +
+      ggplot2::facet_wrap(~ Class) +
+      ggplot2::labs(y = "Count")
     
     # Confusion matrix
-    predictions <- predict(train.mod, newdata = testx)
-    confMatrix <- confusionMatrix(predictions, testy)
-    
-    # Extract class names from roc_results
-    class_names <- names(roc_results$rocs)
-    
-    # ROC plots and AUC values for each combination of classes
-    roc_plots <- list()
-    for (i in seq_along(roc_results$rocs)) {
-      roc_obj <- roc_results$rocs[[i]]
-      
-      # Extract class names from the names of roc_results$rocs
-      class_pair <- strsplit(names(roc_results$rocs)[i], "/")[[1]]
-      class1 <- class_pair[1]
-      class2 <- class_pair[2]
-      
-      # Compute AUC manually
-      auc <- auc(roc_obj[[1]])
-      
-      plot_title <- sprintf("ROC Curve: %s vs %s (AUC = %.2f)", class1, class2, auc)
-      
-      roc_plots[[i]] <- ggroc(roc_obj[[1]]) + 
-        ggtitle(plot_title) +
-        theme_minimal() + 
-        theme(plot.title = element_text(size = 10, face = "bold"))
-    }
+    predictions <- stats::predict(train.mod, newdata = testx)
+    confMatrix <- caret::confusionMatrix(predictions, testy)
     
     # Return a list of all evaluation results
-    results = list(
-      Tuning = tune.mod, 
-      Model = train.mod, 
+    results <- list(
+      Tuning = tune.mod,
+      Training = train.mod,
       `Model quality` = confMatrix,
-      Variableimportance = plot(varImp(train.mod)),
+      VariableImportance = plot(varImp(train.mod)),
       ROC_Results = roc_results,
+      AUC_Values = auc_values,
       ROC_Plots = roc_plots,
       Probabilities_Plot = prob.hist,
-      Predictions = predictions
+      Predictions = predictions,
+      `Training Data` = data.train,
+      `Test Data` = data.test
     )
     
     return(results)
@@ -401,40 +399,39 @@ tuneTrain <- function(data, y, p = 0.7,
   
   ## For regression  
   else if(is.numeric(data[[y]])) {
-    
     pred.mod = caret::predict.train(train.mod, newdata = testx)
     # Calculate residuals against the test set
     resids = testy - pred.mod
-    
+    Actual = testy
     # Prepare residuals for plotting
     respred.df = data.frame(Residuals = resids, Predicted = pred.mod)
     
     # Prepare predictions for plotting
-    actual.vs.predicted.df = data.frame(Actual = testy, Predicted = pred.mod)
+    actual.vs.predicted.df = data.frame(Actual = Actual, Predicted = pred.mod)
     
     ## Model Quality metrics
-    Quality_metrics <- postResample(pred = actual.vs.predicted.df$Predicted,
+    Quality_metrics <-caret::postResample(pred = actual.vs.predicted.df$Predicted,
                                     obs = actual.vs.predicted.df$Actual)
     
     # Residulas plots
-    respred.plot = ggplot2::ggplot(respred.df, ggplot2::aes(x = Predicted, y = Residuals)) +
+    respred.plot = ggplot2::ggplot(data=respred.df, ggplot2::aes(x = Predicted, y = Residuals)) +
       ggplot2::geom_point() +  
       ggplot2::theme_bw() +
       ggplot2::labs(x = "Predicted", y = "Residuals")
     
     # Plotting Predicted vs Actual values
-    actual.vs.predicted.plot = ggplot2::ggplot(actual.vs.predicted.df, ggplot2::aes(x = Actual, y = Predicted)) +
+    actual.vs.predicted.plot = ggplot2::ggplot(data=actual.vs.predicted.df, ggplot2::aes(x = Actual, y = Predicted)) +
       ggplot2::geom_point() +
       ggplot2::geom_smooth(method = "loess")+
       ggplot2::theme_bw() +
       ggplot2::labs(x = "Actual", y = "Predicted", title = "Predicted vs Actual Values")
     
     # Get Variable importance
-    VarImportance <- plot(varImp(train.mod))
+    VarImportance <- plot(caret::varImp(train.mod))
     
     # Gather results
     results = list(Tuning = tune.mod, 
-                   Model = train.mod, 
+                   Training = train.mod, 
                    Predictions = pred.mod, 
                    `Residuals Vs. Predicted Plot` = respred.plot, 
                    `Predicted vs Actual Plot` = actual.vs.predicted.plot,
