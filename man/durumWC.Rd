@@ -5,7 +5,7 @@
 \alias{durumWC}
 \title{durumWC}
 \format{
-The data includes the site unique identifier, longitude, latitude and 55 worldclim data \href{https://www.worldclim.org/data/worldclim21.html#bio_10m}{worldclim}
+The data includes the site unique identifier, longitude, latitude and 55 worldclim data \href{https://www.worldclim.org/data/worldclim21.html}{worldclim}
 }
 \usage{
 data("durumWC")

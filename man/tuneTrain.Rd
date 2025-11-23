@@ -52,6 +52,8 @@ tuneTrain(
 \item{classProbs}{a logical (default : TRUE assuming classification task). It should be set to FALSE for regression tasks in conjunction with \code{summary} argument set to "defaultSummary". See examples for more details.}
 
 \item{...}{additional arguments to be passed to \code{createDataPartition}, \code{trainControl} and \code{train} functions in the package \code{caret}.}
+
+\item{classtype}{integer.indicates the number of classes of the traits.}
 }
 \value{
 A list object with results from tuning and training the model selected in \code{method}, together with predictions and class probabilities. The training and test data sets obtained from splitting the data are also returned in addition to model quality metrics and preformance plots.
@@ -112,11 +114,12 @@ svm.DHE <- tuneTrain(data = DurumWheatDHEWC,
 \code{\link[caret]{trainControl}},
 \code{\link[caret]{train}},
 \code{\link[caret]{predict.train}},
+\code{\link[ROSE]{ovun.sample}},
 \code{\link[ggplot2]{ggplot}},
 \code{\link[pROC]{auc}},
 \code{\link[pROC]{roc}},
 \code{\link[pROC]{ggroc}},
 }
 \author{
-Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
+Chafik Analy, Khadija Aziz, Zakaria Kehel, Bancy Ngatia
 }

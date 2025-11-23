@@ -62,7 +62,7 @@ reference:
         - getCrops
         - getAccessions
         - mapAccessions
-        - getCropTraits
+        - getTraits
         - getTraitsData
         - getOnset
         - getGrowthPeriod

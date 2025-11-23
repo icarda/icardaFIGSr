@@ -12,7 +12,7 @@ data("FIGS")
 }
 \description{
 FIGS subset for wheat sodicity resistance
-constructed using the harmonized world soil database HWSD
+constructed using the FAO harmonized world soil database HWSD
 }
 \examples{
 if(interactive()){
