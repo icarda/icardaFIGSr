@@ -36,18 +36,19 @@
   
 }
 
-#' @title Getting Accession Data from ICARDA's Genebank Database.
-#' @description Return a data frame with accession data for the specified crop or specified list of accession numbers (i.e. IGs).
-#' @param crop character. Crop for which to get accession data. See section 'Details' for available crops or use \code{\link[icardaFIGSr]{getCrops}} function. Default: "".
-#' @param ori string. Country of origin using the ISO 3166-1 alpha-3 country codes. Default: NULL.
-#' @param IG integer. List of accession numbers. Default: "".
-#' @param doi boolean. If \code{TRUE} , the function will return the digital object identifiers DOI for the accessions. Default: FALSE.
-#' @param taxon boolean. If \code{TRUE}, the function will return the taxon information of the accessions. Default: FALSE.
-#' @param collectionYear boolean. If \code{TRUE}, the function will return the year of the collecting mission. Default: FALSE.
-#' @param coor boolean. If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.
-#' @param available boolean. If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.
-#' @return A data frame with accession passport data for specified crop in \code{crop} from the locations in \code{ori} if specified.
-#' @details The list of available crops can be fetched from ICARDA's Genebank database using \code{\link[icardaFIGSr]{getCrops}}.
+#' @title Retrieving ICARDA Genebank Accession Passport Data.
+#' @description Get ICARDA Genebank passport data by crop or accession numbers.
+#' @param crop Crop name. Default: "".
+#' @param ori Country of origin (ISO 3166-1 alpha-3 code). Default: NULL.
+#' @param IG List of accession numbers. Default: "".
+#' @param doi \text{[Deprecated]} No longer used as of version 2.0.0.
+#' @param taxon \text{[Deprecated]} No longer used as of version 2.0.0.
+#' @param collectionYear \text{[Deprecated]} No longer used as of version 2.0.0.
+#' @param coor If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.
+#' @param available If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.
+#' @param other_id If \code{TRUE}, returns other IDs associated with accessions. Default: FALSE.
+#' @return Data frame of accession passport data by crop or accession numbers.
+#' @details Available crops can be retrieved using \code{\link[icardaFIGSr]{getCrops}}.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
 #' @examples
 #' \dontrun{
@@ -58,13 +59,32 @@
 #' @importFrom httr handle POST content
 #' @export
 
-getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = FALSE, collectionYear = FALSE,  coor = FALSE, available = FALSE, other_id = FALSE) {
+getAccessions <- function(crop = "",
+                          ori = NULL,
+                          IG = "",
+                          doi = lifecycle::deprecated(),
+                          taxon = lifecycle::deprecated(),
+                          collectionYear = lifecycle::deprecated(),
+                          coor = FALSE,
+                          available = FALSE,
+                          other_id = FALSE) {
+
+  if (lifecycle::is_present(doi)) {
+    lifecycle::deprecate_warn("2.0.0", "getAccessions(doi)", details = "doi is no longer used.")
+  }
+
+  if (lifecycle::is_present(taxon)) {
+    lifecycle::deprecate_warn("2.0.0", "getAccessions(taxon)", details = "taxon is no longer used.")
+  }
   
+  if (lifecycle::is_present(collectionYear)) {
+    lifecycle::deprecate_warn("2.0.0", "getAccessions(collectionYear)", details = "collectionYear is no longer used.")
+  }
+
   query = ""
   if(!missing(crop)) {
     query <- paste("CROP_NAME = '", crop ,"'",  sep = "")
   }
-  
   
   if(!is.null(ori)) {
     ori = paste(ori, collapse = "','")
@@ -105,9 +125,6 @@ getAccessions <- function(crop = "", ori = NULL, IG = "", doi = FALSE, taxon = F
       ,crop = crop
       ,DataFilter = query
       ,coor = coor
-      ,doi = doi
-      ,taxon = taxon
-      ,col_year = collectionYear
       ,available = available
       ,other_id = other_id
     )

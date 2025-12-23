@@ -2,45 +2,47 @@
 % Please edit documentation in R/getData.R
 \name{getAccessions}
 \alias{getAccessions}
-\title{Getting Accession Data from ICARDA's Genebank Database.}
+\title{Retrieving ICARDA Genebank Accession Passport Data.}
 \usage{
 getAccessions(
   crop = "",
   ori = NULL,
   IG = "",
-  doi = FALSE,
-  taxon = FALSE,
-  collectionYear = FALSE,
+  doi = lifecycle::deprecated(),
+  taxon = lifecycle::deprecated(),
+  collectionYear = lifecycle::deprecated(),
   coor = FALSE,
   available = FALSE,
   other_id = FALSE
 )
 }
 \arguments{
-\item{crop}{character. Crop for which to get accession data. See section 'Details' for available crops or use \code{\link[icardaFIGSr]{getCrops}} function. Default: "".}
+\item{crop}{Crop name. Default: "".}
 
-\item{ori}{string. Country of origin using the ISO 3166-1 alpha-3 country codes. Default: NULL.}
+\item{ori}{Country of origin (ISO 3166-1 alpha-3 code). Default: NULL.}
 
-\item{IG}{integer. List of accession numbers. Default: "".}
+\item{IG}{List of accession numbers. Default: "".}
 
-\item{doi}{boolean. If \code{TRUE} , the function will return the digital object identifiers DOI for the accessions. Default: FALSE.}
+\item{doi}{\text{\link{Deprecated}} No longer used as of version 2.0.0.}
 
-\item{taxon}{boolean. If \code{TRUE}, the function will return the taxon information of the accessions. Default: FALSE.}
+\item{taxon}{\text{\link{Deprecated}} No longer used as of version 2.0.0.}
 
-\item{collectionYear}{boolean. If \code{TRUE}, the function will return the year of the collecting mission. Default: FALSE.}
+\item{collectionYear}{\text{\link{Deprecated}} No longer used as of version 2.0.0.}
 
-\item{coor}{boolean. If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.}
+\item{coor}{If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.}
 
-\item{available}{boolean. If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.}
+\item{available}{If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.}
+
+\item{other_id}{If \code{TRUE}, returns other IDs associated with accessions. Default: FALSE.}
 }
 \value{
-A data frame with accession passport data for specified crop in \code{crop} from the locations in \code{ori} if specified.
+Data frame of accession passport data by crop or accession numbers.
 }
 \description{
-Return a data frame with accession data for the specified crop or specified list of accession numbers (i.e. IGs).
+Get ICARDA Genebank passport data by crop or accession numbers.
 }
 \details{
-The list of available crops can be fetched from ICARDA's Genebank database using \code{\link[icardaFIGSr]{getCrops}}.
+Available crops can be retrieved using \code{\link[icardaFIGSr]{getCrops}}.
 }
 \examples{
 \dontrun{

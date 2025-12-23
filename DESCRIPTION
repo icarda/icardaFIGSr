@@ -1,7 +1,7 @@
 Package: icardaFIGSr
 Type: Package
 Title: Subsetting using Focused Identification of the Germplasm Strategy (FIGS)
-Version: 1.0.2
+Version: 2.0.0
 Authors@R:
        c(person(given = "Zakaria",
            family = "Kehel",
@@ -9,7 +9,7 @@ Authors@R:
            email = "z.kehel@cgiar.org"),
        person(given = "Chafik",
            family = "Analy",
-           role = c("aut","ctb")),       
+           role = "aut"),       
        person(given = "Khadija",
            family = "Aouzal",
            role = "aut"),       
