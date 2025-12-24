@@ -41,9 +41,9 @@
 #' @param crop Crop name. Default: "".
 #' @param ori Country of origin (ISO 3166-1 alpha-3 code). Default: NULL.
 #' @param IG List of accession numbers. Default: "".
-#' @param doi \text{[Deprecated]} No longer used as of version 2.0.0.
-#' @param taxon \text{[Deprecated]} No longer used as of version 2.0.0.
-#' @param collectionYear \text{[Deprecated]} No longer used as of version 2.0.0.
+#' @param doi \code{[Deprecated]} No longer used as of version 2.0.0.
+#' @param taxon \code{[Deprecated]} No longer used as of version 2.0.0.
+#' @param collectionYear \code{[Deprecated]} No longer used as of version 2.0.0.
 #' @param coor If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.
 #' @param available If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.
 #' @param other_id If \code{TRUE}, returns other IDs associated with accessions. Default: FALSE.
@@ -56,7 +56,9 @@
 #'  durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
 #'  }
 #' @name getAccessions
-#' @importFrom httr handle POST content
+#' @importFrom httr2 request req_body_form req_perform resp_body_string
+#' @importFrom readr read_csv
+#' @importFrom lifecycle is_present deprecate_warn
 #' @export
 
 getAccessions <- function(crop = "",
@@ -69,79 +71,72 @@ getAccessions <- function(crop = "",
                           available = FALSE,
                           other_id = FALSE) {
 
-  if (lifecycle::is_present(doi)) {
-    lifecycle::deprecate_warn("2.0.0", "getAccessions(doi)", details = "doi is no longer used.")
-  }
-
-  if (lifecycle::is_present(taxon)) {
-    lifecycle::deprecate_warn("2.0.0", "getAccessions(taxon)", details = "taxon is no longer used.")
-  }
-  
-  if (lifecycle::is_present(collectionYear)) {
-    lifecycle::deprecate_warn("2.0.0", "getAccessions(collectionYear)", details = "collectionYear is no longer used.")
-  }
-
-  query = ""
-  if(!missing(crop)) {
-    query <- paste("CROP_NAME = '", crop ,"'",  sep = "")
-  }
-  
-  if(!is.null(ori)) {
-    ori = paste(ori, collapse = "','")
-    if (query == "") {
-      query <- paste(query, "ORI IN ('", ori, "')" , sep = "")
-    } else {
-      query <- paste(query, " AND ORI IN ('", ori, "')" , sep = "")
+  dep_args <- list(doi = doi, taxon = taxon, collectionYear = collectionYear)
+  for (arg_name in names(dep_args)) {
+    if (lifecycle::is_present(dep_args[[arg_name]])) {
+      lifecycle::deprecate_warn("2.0.0", sprintf("getAccessions(%s)", arg_name))
     }
   }
-  
-  
-  if(!missing(IG)) {
-    IG = paste(IG, collapse = ',')
+
+  query <- ""
+  if (!missing(crop)) {
+    query <- paste("CROP_NAME = '", crop, "'", sep = "")
+  }
+
+  if (!is.null(ori)) {
+    ori <- paste(ori, collapse = "','")
     if (query == "") {
-      query <- paste(query, "IG IN (", IG , ")" , sep = "")
+      query <- paste(query, "ORI IN ('", ori, "')", sep = "")
     } else {
-      query <- paste(query, " AND IG IN (", IG , ")" , sep = "")
+      query <- paste(query, " AND ORI IN ('", ori, "')", sep = "")
     }
   }
-  
-  res = "error"
-  if(query != "") {
-    
+
+  if (!missing(IG)) {
+    IG <- paste(IG, collapse = ",")
+    if (query == "") {
+      query <- paste(query, "IG IN (", IG, ")", sep = "")
+    } else {
+      query <- paste(query, " AND IG IN (", IG, ")", sep = "")
+    }
+  }
+
+  if (query != "") {
     if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
       .authenticate()
     }
-    
+
     credentials <- get(".credentials", envir = .icardaFIGSEnv)
-    
+
     username <- credentials$username
     password <- credentials$password
-    
-    handle <- httr::handle("https://grs.icarda.org/web_services/accessionsToR.php")
-    
-    body <- list(
-      user = username
-      ,pass  = password
-      ,crop = crop
-      ,DataFilter = query
-      ,coor = coor
-      ,available = available
-      ,other_id = other_id
-    )
-    
-    response <- httr::POST(handle = handle, body = body)
-    res <- httr::content(response, type = "text/csv")
-    pattern = "invalid"
-    
-    if(grepl(pattern, response, ignore.case = TRUE)){
-      rm(.credentials, envir = .icardaFIGSEnv)
+
+    resp <- httr2::request("https://grs.icarda.org/web_services/accessionsToR.php") %>%
+      httr2::req_body_form(
+        user       = username,
+        pass       = password,
+        crop       = crop,
+        DataFilter = query,
+        coor       = coor,
+        available  = available,
+        other_id   = other_id
+      ) %>%
+      httr2::req_perform()
+
+    body <- httr2::resp_body_string(resp)
+
+    if (grepl("invalid", body, ignore.case = TRUE)) {
+      if (exists(".credentials", envir = .icardaFIGSEnv)) {
+        rm(.credentials, envir = .icardaFIGSEnv)
+      }
+      stop("Invalid credentials or unauthorized access.")
     }
-    
-  }
-  return(res)
+    return(readr::read_csv(body, show_col_types = FALSE))
+  } else
+    return("Please provide at least one filtering criterion (crop or IG).")
 }
 
-#' @title Getting Traits Associated with Crops from the ICARDA's Genebank Database
+#' @title Getting Traits Descriptors by Crop
 #' @description Return a data frame containing traits associated with a particular crop, their description and related identifiers.
 #' @param crop character. Crop for which to get available traits.
 #' @return A data frame with traits that are associated with the crop specified in \code{crop}.
@@ -157,48 +152,49 @@ getAccessions <- function(crop = "",
 #' }
 #' @rdname getTraits
 #' @export
-#' @importFrom httr handle POST content
+#' @importFrom httr2 request req_body_form req_perform resp_body_string
+#' @importFrom readr read_csv
 
 getTraits <- function(crop) {
-  
-  if (missing(crop)) {
+
+  if (missing(crop)) {    
     print("Please specify a crop from the list below:")
     return(getCrops())
   } else {
-    
-    
     if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
       .authenticate()
     }
-      
+
     credentials <- get(".credentials", envir = .icardaFIGSEnv)
-    
+
     username <- credentials$username
     password <- credentials$password
-    handle <- httr::handle("https://grs.icarda.org/web_services/getTraits.php")
-    
-    body <- list(
-      user = username
-      ,pass  = password
-      ,crop = crop
-    )
-    
-    response <- httr::POST(handle = handle, body = body)
-    result <- httr::content(response, type = "text/csv")
-    
-    pattern = "invalid"
-    
-    if(grepl(pattern, response, ignore.case = TRUE)){
-      rm(.credentials, envir = .icardaFIGSEnv)
+
+    resp <- httr2::request("https://grs.icarda.org/web_services/getTraits.php") %>%
+      httr2::req_body_form(
+        user = username,
+        pass  = password,
+        crop = crop
+      ) %>%
+      httr2::req_perform()
+
+    body <- httr2::resp_body_string(resp)
+
+    if (grepl("invalid", body, ignore.case = TRUE)) {
+      if (exists(".credentials", envir = .icardaFIGSEnv)) {
+        rm(.credentials, envir = .icardaFIGSEnv)
+      }
+      stop("Invalid credentials or unauthorized access.")
     }
-    
-    return(result)
+
+    return(readr::read_csv(body, show_col_types = FALSE))
+
   }
 }
 
 
 #' @title Getting Trait Values of Accessions for a Specific Trait
-#' @description Return a data frame with observed values of accessions for associated Trait
+#' @description Return a data frame with observed values of accessions for associated trait
 #' @param IG factor. Unique identifier of accession.
 #' @param traitID integer. Unique identifier of trait (from \code{\link[icardaFIGSr]{getTraits}}).
 #' @return A data frame with scores for the trait specified in \code{traitID} for the accessions given in \code{IG}.
@@ -215,40 +211,45 @@ getTraits <- function(crop) {
 #' }
 #' @rdname getTraitsData
 #' @export
-#' @importFrom httr handle POST content
+#' @importFrom httr2 request req_body_form req_perform resp_body_string
+#' @importFrom readr read_csv
 
 getTraitsData <- function(IG, traitID) {
-  
-  IG = paste(IG, collapse = ',')
-  if(traitID == "") {
+
+  IG <- paste(IG, collapse = ',')
+
+  if (traitID == "") {
     print("Error: Please provide a valid traitID")
-    result = NULL
+    return(NULL)
   } else {
-    
     if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
       .authenticate()
     }
-    
+
     credentials <- get(".credentials", envir = .icardaFIGSEnv)
-    
+
     username <- credentials$username
     password <- credentials$password
-    handle <- httr::handle("https://grs.icarda.org/web_services/getTraitsData.php")
-    
-    body <- list(
-      user = username
-      ,pass  = password
-      ,traitID = traitID
-      ,IGs = IG
-    )
-    
-    response <- httr::POST(handle = handle, body = body)
-    result <- httr::content(response, type = "text/csv", col_types = "nnncnnnnnnnc")
-    pattern = "invalid"
-    
-    if(grepl(pattern, response, ignore.case = TRUE)){
-      rm(.credentials, envir = .icardaFIGSEnv)
+
+    resp <- httr2::request("https://grs.icarda.org/web_services/getTraitsData.php") %>%
+      httr2::req_body_form(
+        user = username,
+        pass  = password,
+        traitID = traitID,
+        IGs = IG
+      ) %>%
+      httr2::req_perform()
+
+    body <- httr2::resp_body_string(resp)
+
+    if (grepl("invalid", body, ignore.case = TRUE)) {
+      if (exists(".credentials", envir = .icardaFIGSEnv)) {
+        rm(.credentials, envir = .icardaFIGSEnv)
+      }
+      stop("Invalid credentials or unauthorized access.")
     }
+
+    return(readr::read_csv(body, show_col_types = FALSE))
+
   }
-  return(result)
 }
