@@ -1,6 +1,7 @@
 .icardaFIGSEnv <- new.env(parent = emptyenv())
 
-# GUI for getting username and password from user
+#' @title Internal function to authenticate user via GUI
+#' @description creates a GUI to prompt the user for their username and password
 
 .authenticate <- function(){
   tt <- tcltk::tktoplevel()
@@ -36,17 +37,111 @@
   
 }
 
-#' @title Retrieving ICARDA Genebank Accession Passport Data.
-#' @description Get ICARDA Genebank passport data by crop or accession numbers.
-#' @param crop Crop name. Default: "".
-#' @param ori Country of origin (ISO 3166-1 alpha-3 code). Default: NULL.
-#' @param IG List of accession numbers. Default: "".
+#' @title Internal function to get resource data from ICARDA Genebank API
+#' @description This internal function handles authentication and data retrieval from ICARDA Genebank API.
+#' @return Parsed JSON response from the API.
+#' @param url The URL for getting the resource data
+#' @param body body for POST requests
+#' @importFrom httr2 oauth_client req_oauth_password request req_body_json req_perform resp_body_json
+
+.get_data <- function(url, body = NULL) {
+
+  # Set up OAuth client
+  client <- oauth_client(
+    id        = "7ac1999e52ff54d84a2fc8ca018544e0",
+    token_url = "https://grs.icarda.org/api/v1/token",
+    auth      = "body",
+    name      = "icardaFIGSr"
+  )
+
+  # Retrieve the credentials list from the internal environment
+  if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
+    .authenticate()
+  }
+
+  creds <- get(".credentials", envir = .icardaFIGSEnv)
+
+  req <- request(url)
+
+  if (!is.null(body)) {
+    req <- req %>% req_body_json(body)
+  }
+
+  req <- req %>%
+    req_oauth_password(
+      client     = client,
+      username   = creds$username,
+      password   = creds$password,
+      scope      = "read"
+    )
+
+  resp <- tryCatch({
+    req_perform(req) %>% resp_body_json()
+    #req_dry_run(req)
+  }, error = function(e) {
+    
+    if (grepl("401", e$message) || grepl("invalid_grant", e$message)) {
+      message("Authentication failed: Session expired or wrong credentials. Please log in.")
+
+      # Trigger the UI
+      .authenticate()
+
+      # Retry with new credentials
+      request(url) %>%
+        req_body_json(body) %>%
+        req_oauth_password(
+          client   = client,
+          username = creds$username,
+          password = creds$password,
+          scope   = "read"
+        ) %>%
+        req_perform()
+    } else {
+      stop(e)
+    }
+  })
+
+  return(resp)
+}
+
+#' @title Getting List of Crops Maintained in ICARDA Genebank
+#' @description Retrieve a list of available crops in ICARDA's Genebank.
+#' @return A data frame with crop codes and names.
+#' @author Khadija Aouzal, Zakaria Kehel, Fawzy Nawar
+#' @examples
+#' \dontrun{
+#'  # Get list of available crops
+#'  crops <- getCrops()
+#'  }
+#' @name getCrops
+#' @importFrom purrr pluck
+#' @importFrom dplyr bind_rows
+#' @export
+
+getCrops <- function() {
+
+  json_data <- .get_data("https://grs.icarda.org/api/v1/crops")
+
+  crops <- json_data %>%
+    purrr::pluck("data") %>%
+    dplyr::bind_rows()
+
+  return(crops)
+
+}
+
+
+#' @title Getting Accession Passport Data by Crop or Accession Numbers
+#' @description Return a data frame containing passport data of accessions filtered by crop name or accession numbers.
+#' @param crop Crop name.
+#' @param ori Country of origin (ISO 3166-1 alpha-3 code).
+#' @param IG List of accession numbers.
 #' @param doi \code{[Deprecated]} No longer used as of version 2.0.0.
 #' @param taxon \code{[Deprecated]} No longer used as of version 2.0.0.
 #' @param collectionYear \code{[Deprecated]} No longer used as of version 2.0.0.
-#' @param coor If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.
-#' @param available If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.
-#' @param other_id If \code{TRUE}, returns other IDs associated with accessions. Default: FALSE.
+#' @param coor If \code{TRUE}, returns only georeferenced accessions.
+#' @param available If \code{TRUE}, returns only available accessions for distribution.
+#' @param other_id If \code{TRUE}, returns other IDs associated with accessions.
 #' @return Data frame of accession passport data by crop or accession numbers.
 #' @details Available crops can be retrieved using \code{\link[icardaFIGSr]{getCrops}}.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
@@ -56,14 +151,14 @@
 #'  durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
 #'  }
 #' @name getAccessions
-#' @importFrom httr2 request req_body_form req_perform resp_body_string
-#' @importFrom readr read_csv
+#' @importFrom purrr pluck
+#' @importFrom dplyr bind_rows
 #' @importFrom lifecycle is_present deprecate_warn
 #' @export
 
 getAccessions <- function(crop = "",
                           ori = NULL,
-                          IG = "",
+                          IG = NULL,
                           doi = lifecycle::deprecated(),
                           taxon = lifecycle::deprecated(),
                           collectionYear = lifecycle::deprecated(),
@@ -77,71 +172,38 @@ getAccessions <- function(crop = "",
       lifecycle::deprecate_warn("2.0.0", sprintf("getAccessions(%s)", arg_name))
     }
   }
-
-  query <- ""
-  if (!missing(crop)) {
-    query <- paste("CROP_NAME = '", crop, "'", sep = "")
+  
+  if(crop == "" && is.null(IG)){
+    stop("Please provide at least one filtering criterion (crop or IG).")
   }
-
-  if (!is.null(ori)) {
-    ori <- paste(ori, collapse = "','")
-    if (query == "") {
-      query <- paste(query, "ORI IN ('", ori, "')", sep = "")
-    } else {
-      query <- paste(query, " AND ORI IN ('", ori, "')", sep = "")
-    }
-  }
-
-  if (!missing(IG)) {
-    IG <- paste(IG, collapse = ",")
-    if (query == "") {
-      query <- paste(query, "IG IN (", IG, ")", sep = "")
-    } else {
-      query <- paste(query, " AND IG IN (", IG, ")", sep = "")
-    }
-  }
-
-  if (query != "") {
-    if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
-      .authenticate()
-    }
-
-    credentials <- get(".credentials", envir = .icardaFIGSEnv)
-
-    username <- credentials$username
-    password <- credentials$password
-
-    resp <- httr2::request("https://grs.icarda.org/web_services/accessionsToR.php") %>%
-      httr2::req_body_form(
-        user       = username,
-        pass       = password,
-        crop       = crop,
-        DataFilter = query,
-        coor       = coor,
-        available  = available,
-        other_id   = other_id
-      ) %>%
-      httr2::req_perform()
-
-    body <- httr2::resp_body_string(resp)
-
-    if (grepl("invalid", body, ignore.case = TRUE)) {
-      if (exists(".credentials", envir = .icardaFIGSEnv)) {
-        rm(.credentials, envir = .icardaFIGSEnv)
-      }
-      stop("Invalid credentials or unauthorized access.")
-    }
-    return(readr::read_csv(body, show_col_types = FALSE))
-  } else
-    return("Please provide at least one filtering criterion (crop or IG).")
+  
+  crop <- if(crop == "") NULL else list(crop)
+  
+  fields <- list()
+  if(other_id) fields <- list("other_id")
+  
+  body_list <- list(
+    filters = list(
+      CropName = crop,
+      AccessionNumber = IG,
+      CountryOfOrigin = ori,
+      available = available,
+      georef = coor),
+    fields = fields)
+  
+  json_data <- .get_data("https://grs.icarda.org/api/v1/accessions", body_list)
+  
+  passport_data <- json_data %>%
+    purrr::pluck("data") %>%
+    dplyr::bind_rows()
+  
+  return(passport_data)
 }
 
-#' @title Getting Traits Descriptors by Crop
-#' @description Return a data frame containing traits associated with a particular crop, their description and related identifiers.
-#' @param crop character. Crop for which to get available traits.
-#' @return A data frame with traits that are associated with the crop specified in \code{crop}.
-#' @details \code{getTraits} returns a data frame of traits together with their IDs and descriptions.
-#' The list of available crops to use as input for \code{crop} can be fetched from ICARDA's Genebank database using \code{\link[icardaFIGSr]{getCrops}}.
+#' @title Getting Traits Descriptors for a Specific Crop
+#' @description Return a data frame with traits descriptors associated with a specific crop.
+#' @param crop Crop name.
+#' @return A data frame with traits descriptors associated with the specified crop.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
 #' @examples
 #' \dontrun{
@@ -152,53 +214,30 @@ getAccessions <- function(crop = "",
 #' }
 #' @rdname getTraits
 #' @export
-#' @importFrom httr2 request req_body_form req_perform resp_body_string
-#' @importFrom readr read_csv
+#' @importFrom purrr pluck
+#' @importFrom dplyr bind_rows
 
 getTraits <- function(crop) {
 
-  if (missing(crop)) {    
-    print("Please specify a crop from the list below:")
-    return(getCrops())
+  if (missing(crop) || crop == "") {    
+    stop("Please specify a valid crop name")
   } else {
-    if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
-      .authenticate()
-    }
-
-    credentials <- get(".credentials", envir = .icardaFIGSEnv)
-
-    username <- credentials$username
-    password <- credentials$password
-
-    resp <- httr2::request("https://grs.icarda.org/web_services/getTraits.php") %>%
-      httr2::req_body_form(
-        user = username,
-        pass  = password,
-        crop = crop
-      ) %>%
-      httr2::req_perform()
-
-    body <- httr2::resp_body_string(resp)
-
-    if (grepl("invalid", body, ignore.case = TRUE)) {
-      if (exists(".credentials", envir = .icardaFIGSEnv)) {
-        rm(.credentials, envir = .icardaFIGSEnv)
-      }
-      stop("Invalid credentials or unauthorized access.")
-    }
-
-    return(readr::read_csv(body, show_col_types = FALSE))
-
+    body_list <- list(crops = list(crop))
+    json_data <- .get_data("https://grs.icarda.org/api/v1/traits", body_list)
+    crop_traits <- json_data %>%
+      purrr::pluck("data") %>%
+      dplyr::bind_rows()
+    return(crop_traits)
   }
 }
 
 
-#' @title Getting Trait Values of Accessions for a Specific Trait
-#' @description Return a data frame with observed values of accessions for associated trait
-#' @param IG factor. Unique identifier of accession.
-#' @param traitID integer. Unique identifier of trait (from \code{\link[icardaFIGSr]{getTraits}}).
+#' @title Getting Trait Data for Given Accessions
+#' @description Return a data frame with scores for a specific trait for given accessions.
+#' @param IG Accession numbers.
+#' @param traitID Unique identifier of trait (from \code{\link[icardaFIGSr]{getTraits}}).
 #' @return A data frame with scores for the trait specified in \code{traitID} for the accessions given in \code{IG}.
-#' @details Possible inputs for \code{traitID} can be found using the \code{\link[icardaFIGSr]{getTraits}} function (see section 'Examples').
+#' @details Valid inputs for \code{traitID} can be fetched using the \code{\link[icardaFIGSr]{getTraits}} function.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
 #' @examples
 #' \dontrun{
@@ -206,50 +245,26 @@ getTraits <- function(crop) {
 #'  # Check trait ID for septoria and get septoria data for durum wheat
 #'  durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
 #'  durumTraits <- getTraits(crop = 'Durum wheat')
-#'  septoria <- getTraitsData(IG = durum$IG, traitID = 145)
+#'  septoria <- getTraitsData(IG = durum$AccessionNumber, traitID = 145)
 #'  }
 #' }
 #' @rdname getTraitsData
 #' @export
-#' @importFrom httr2 request req_body_form req_perform resp_body_string
-#' @importFrom readr read_csv
+#' @importFrom purrr pluck
+#' @importFrom dplyr bind_rows
 
 getTraitsData <- function(IG, traitID) {
 
-  IG <- paste(IG, collapse = ',')
+  body_list <- list(
+    traitID = traitID,
+    IGs = IG
+    )
 
-  if (traitID == "") {
-    print("Error: Please provide a valid traitID")
-    return(NULL)
-  } else {
-    if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
-      .authenticate()
-    }
+  json_data <- .get_data("https://grs.icarda.org/api/v1/traitdata", body_list)
 
-    credentials <- get(".credentials", envir = .icardaFIGSEnv)
+  trait_data <- json_data %>%
+    purrr::pluck("data") %>%
+    dplyr::bind_rows()
 
-    username <- credentials$username
-    password <- credentials$password
-
-    resp <- httr2::request("https://grs.icarda.org/web_services/getTraitsData.php") %>%
-      httr2::req_body_form(
-        user = username,
-        pass  = password,
-        traitID = traitID,
-        IGs = IG
-      ) %>%
-      httr2::req_perform()
-
-    body <- httr2::resp_body_string(resp)
-
-    if (grepl("invalid", body, ignore.case = TRUE)) {
-      if (exists(".credentials", envir = .icardaFIGSEnv)) {
-        rm(.credentials, envir = .icardaFIGSEnv)
-      }
-      stop("Invalid credentials or unauthorized access.")
-    }
-
-    return(readr::read_csv(body, show_col_types = FALSE))
-
-  }
+  return(trait_data)
 }
