@@ -229,7 +229,7 @@ DurumWheatDHEWC %>%
 rf.DHE_class <- tuneTrain(data = DurumWheatDHEWC,
                               y =  'DHE_class',
                               method = 'rf',
-                              parallelComputing = TRUE,
+                              parallelComputing = FALSE,
                               summary = multiClassSummary,
                               imbalanceMethod ="up", # Here we upsample the less represented class (3)
                               imbalanceThreshold = 0.2,
@@ -285,7 +285,7 @@ rf.ST_S <- tuneTrain(
                       y =  'ST_S',
                       method = 'rf', # using rf algorithm
                       summary = multiClassSummary, # Important for classification tasks  
-                      parallelComputing = T,
+                      parallelComputing = FALSE,
                       repeats = 3,
                       process = c("center","scale"),
                       classProbs = TRUE) # Important for classification tasks
