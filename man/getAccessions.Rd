@@ -39,7 +39,8 @@ getAccessions(
 Data frame of accession passport data by crop or accession numbers.
 }
 \description{
-Return a data frame containing passport data of accessions filtered by crop name or accession numbers.
+Return a data frame containing passport data of accessions
+filtered by crop name or accession numbers.
 }
 \details{
 Available crops can be retrieved using \code{\link[icardaFIGSr]{getCrops}}.

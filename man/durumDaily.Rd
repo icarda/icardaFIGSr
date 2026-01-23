@@ -5,7 +5,8 @@
 \alias{durumDaily}
 \title{durumDaily}
 \format{
-The data includes the site unique identifier and daily data for 4 climatic variables (tmin, tmax, precipitation and relative humidity)
+The data includes the site unique identifier and
+daily data for 4 climatic variables (tmin, tmax, precipitation and relative humidity)
 }
 \usage{
 data("durumDaily")
@@ -15,7 +16,7 @@ data("durumDaily")
 }
 \examples{
 if(interactive()){
- # Load durum wheat data with their daily climatic variables obtained from ICARDA database
+ # Load durum wheat data with their daily climatic variables
  data("durumDaily")
 }
 }

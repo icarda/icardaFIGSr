@@ -1,25 +1,47 @@
 
-#' @title Calculating Growing Degree Days and Lengths of Growth Stages for Various Crops Using Onset Data from ICARDA's Genebank Database
-#' @description Calculates growing degree days (GDD) as well as cumulative GDD, and returns a list of various data frames based on specified arguments.
-#' @param sitecode expression. Vector with names of sites from which to extract onset data.
-#' @param crop character. Crop name, calculations are available for 'Barley', 'Bread wheat', 'Chickpea', 'Durum wheat' and 'Lentil'.
-#' @param base integer. Minimum temperature constraint for the crop.
-#' @param max integer. Maximum temperature constraint for the crop.
-#' @param gdd boolean. If \code{TRUE}, returns a data frame containing calculated GDD and accumulated GDD together with climatic variables used for the calculations. Default: FALSE.
+#' @title Calculating Growing Degree Days and Lengths of Growth Stages for Various Crops
+#'  Using Onset Data from ICARDA's Genebank Database
+#' @description Calculates growing degree days (GDD) as well as cumulative GDD,
+#'  and returns a list of various data frames based on specified arguments.
+#' @param sitecode Vector with names of sites from which to extract onset data.
+#' @param crop Crop name. Calculations are available for 'Barley', 'Bread wheat',
+#'  'Chickpea', 'Durum wheat' and 'Lentil'.
+#' @param base Minimum temperature constraint for the crop.
+#' @param max  Maximum temperature constraint for the crop.
+#' @param gdd If \code{TRUE}, returns a data frame containing calculated GDD
+#'  and accumulated GDD together with climatic variables used for the calculations.
+#'  Default: FALSE.
 #' @return A list object with different data frames depending on specified option in \code{gdd}.
-#' If \code{gdd = TRUE}, the object is a list containing three data frames: the first one with lengths of different growing stages, the second one with original onset data with phenological variables, and the third one with calculated GDD and accumulated GDD for the sites specified in \code{sitecode}.
-#' If \code{gdd = FALSE}, the object is a list containing two data frames: the first one with lengths of different growing stages, and the second one with original onset data with phenological variables for the sites specified in \code{sitecode}.
-#' @details Growing degree days for various crops are calculated using average daily minimum and maximum temperature values obtained from onset data. The temperature constraints specified in \code{base} and \code{max} are first applied before the calculations are done. These constraints ensure very low or high temperatures which prevent growth of a particular crop are not included.
-#' Crops for which GDD calculations are available include: 'Barley', 'Bread wheat', 'Chickpea', 'Durum wheat' and 'Lentil'. Each of these can be supplied as options for the argument \code{crop}.
-#' Cumulative GDD values determine the length of different growing stages. Growing stages vary depending on the type of crop. Durum wheat, bread wheat and barley have five growth stages, i.e. beginning of heading, beginning and completion of flowering, and beginning and completion of grain filling. Chickpea and lentil have four growth stages, i.e. beginning of flowering, completion of 50% flowering, beginning of seed filling, and completion of 90% maturity (chickpea) or of full maturity (lentil).
+#' If \code{gdd = TRUE}, the object is a list containing three data frames:
+#'  the first one with lengths of different growing stages,
+#'  the second one with original onset data with phenological variables,
+#'  and the third one with calculated GDD and accumulated GDD for the sites specified in \code{sitecode}.
+#' If \code{gdd = FALSE}, the object is a list containing two data frames:
+#'  the first one with lengths of different growing stages,
+#'  and the second one with original onset data with phenological variables
+#'  for the sites specified in \code{sitecode}.
+#' @details Growing degree days for various crops are calculated using average daily minimum
+#'  and maximum temperature values obtained from onset data.
+#'  The temperature constraints specified in \code{base} and \code{max}
+#'  are first applied before the calculations are done.
+#'  These constraints ensure very low or high temperatures which prevent growth of a particular crop are not included.
+#' Crops for which GDD calculations are available include: 'Barley', 'Bread wheat',
+#'  'Chickpea', 'Durum wheat' and 'Lentil'. Each of these can be supplied as options for the argument \code{crop}.
+#' Cumulative GDD values determine the length of different growing stages.
+#'  Growing stages vary depending on the type of crop. Durum wheat, bread wheat
+#'  and barley have five growth stages, i.e. beginning of heading,
+#'  beginning and completion of flowering, and beginning and completion of grain filling.
+#'  Chickpea and lentil have four growth stages, i.e. beginning of flowering,
+#'  completion of 50% flowering, beginning of seed filling,
+#'  and completion of 90% maturity (chickpea) or of full maturity (lentil).
 #' The length of the full growth cycle of the crop for each site is also given in the output data frame.
 #' @author Chafik Analy, Khadija Aouzal, Zakaria Kehel, Bancy Ngatia
 #' @examples
 #' \dontrun{
 #'  # Calculate GDD for durum wheat
 #'  data(durumDaily)
-#'  
-#'  growth <- getGrowthPeriod(sitecode = levels(as.factor(durumDaily$site_code)),
+#'
+#'  growth <- getGrowthPeriod(sitecode = durumDaily$site_code,
 #'                            crop = 'Durum wheat', base = 0,
 #'                            max = 35, gdd = TRUE)
 #'
@@ -29,14 +51,16 @@
 #'  # Get the dataframe with phenological variables from the returned list
 #'  growth.pheno <- growth[[2]]
 #'
-#'  # Get the dataframe with GDD, cumulative GDD, tmin and tmax from the returned list (when gdd = TRUE)
+#'  # Get the dataframe with GDD, cumulative GDD,
+#'  # tmin and tmax from the returned list (when gdd = TRUE)
 #'  growth.gdd <- growth[[3]]
 #'  }
 #'  
 #' @name getGrowthPeriod
 #' @importFrom stats setNames
 #' @importFrom tidyr fill
-#' @importFrom dplyr select mutate filter group_by slice arrange left_join row_number glimpse across
+#' @importFrom dplyr select mutate filter group_by slice
+#' @importFrom dplyr arrange left_join row_number glimpse across lag ends_with
 #' @importFrom plyr ddply join
 #' @importFrom reshape2 melt
 #' @export
@@ -166,8 +190,8 @@ getGrowthPeriod <- function(sitecode, crop, base, max, gdd = FALSE) {
   
   get_stage_length <- function(data, x, cur_column){
     previous_stages <- onset_and_stages |> 
-      mutate(previous_stage=lag(stage)) |>
-      filter(stage==cur_column)
+      mutate(previous_stage = dplyr::lag(stage)) |>
+      dplyr::filter(stage == cur_column)
     prev_stage <- previous_stages[["previous_stage"]]
     stage_length <- ifelse(x - data[[prev_stage]] < 0,
                            x - data[[prev_stage]] + 365,

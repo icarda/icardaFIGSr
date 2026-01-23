@@ -1,7 +1,8 @@
 #' @title Extract Historical Climate Data from WorldClim 2.1
 #' 
 #' @description 
-#' Extracts global climate data from the WorldClim 2.1 database for specific geographic locations provided in a data frame.
+#' Extracts global climate data from the WorldClim 2.1 database for
+#'  specific geographic locations provided in a data frame.
 #' @param sites A \code{data.frame} containing the coordinates of the target locations.
 #' @param long The name of the column in \code{sites} representing longitude.
 #' @param lat The name of the column in \code{sites} representing latitude.
@@ -10,9 +11,11 @@
 #' \code{'vapr'}, or \code{'wind'}.
 #' @param res Numeric. Spatial resolution in minutes of a degree.
 #' Options are 0.5, 2.5, 5, or 10. Default is 2.5.
-#' @return A \code{data.frame} merging the original \code{sites} data with the extracted climatic variables.
-#' @details The function uses the [geodata](https://cran.r-project.org/package=geodata) package to download WorldClim 2.1 data 
-#' and [terra](https://cran.r-project.org/package=terra) for fast spatial extraction.
+#' @return A \code{data.frame} merging the original \code{sites} data
+#'  with the extracted climatic variables.
+#' @details The function uses the [geodata](https://cran.r-project.org/package=geodata)
+#'  package to download WorldClim 2.1 data
+#'  and [terra](https://cran.r-project.org/package=terra) for fast spatial extraction.
 #' @author Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal, Chafik Analy, Tamara Ortiz
 #' @examples
 #' \dontrun{

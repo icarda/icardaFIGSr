@@ -1,10 +1,10 @@
 #' @title Plotting Accessions on Map
-#' @description this function returns a map with points showing where accessions have been collected.
+#' @description Map accessions according to their collecting sites.
 #' @param df object of class "data.frame" with coordinates of accessions and target variable.
 #' @param long character. Column name from \code{df} representing longitude.
 #' @param lat character. Column name from \code{df} representing latitude.
 #' @param y Default: NULL, column name from \code{df} representing the target variable.
-#' @return A world map with plotted points showing accessions collecting sites.
+#' @return A world map with plotted points showing collecting sites.
 #'
 #' @author Khadija Aouzal, Zakaria Kehel
 #' @examples

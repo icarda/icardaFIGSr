@@ -5,17 +5,20 @@
 \alias{septoriaDurumWC}
 \title{septoriaDurumWC}
 \format{
-200 sites from durum wheat collection and their monthly climatic data and evaluation for Septoria Tritici.
+200 sites from durum wheat collection and their monthly climatic data
+and evaluation for Septoria Tritici.
 }
 \usage{
 data("septoriaDurumWC")
 }
 \description{
-A sample data including monthly data for 3 climatic variables (tmin, tmax and precipitation), 19 bioclimatic variables, and evaluation for Septoria Tritici
+A sample data including monthly data for 3 climatic variables
+(tmin, tmax and precipitation), 19 bioclimatic variables,
+and evaluation for Septoria Tritici
 }
 \examples{
 if(interactive()){
- #Load durum wheat data with septoria scores and climatic variables obtained from WorldClim database
+ #Load durum wheat data with septoria scores and climatic variables obtained from WorldClim
  data("septoriaDurumWC")
 }
 }

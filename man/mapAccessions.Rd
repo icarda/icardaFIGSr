@@ -16,10 +16,10 @@ mapAccessions(df, long, lat, y = NULL)
 \item{y}{Default: NULL, column name from \code{df} representing the target variable.}
 }
 \value{
-A world map with plotted points showing accessions collecting sites.
+A world map with plotted points showing collecting sites.
 }
 \description{
-this function returns a map with points showing where accessions have been collected.
+Map accessions according to their collecting sites.
 }
 \examples{
 \dontrun{

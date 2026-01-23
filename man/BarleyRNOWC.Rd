@@ -5,17 +5,20 @@
 \alias{BarleyRNOWC}
 \title{BarleyRNOWC}
 \format{
-More details about the climate data can be found here \href{https://www.worldclim.org/data/worldclim21.html}{worldclim}
+More details about the climate data can be found here
+\href{https://www.worldclim.org/data/worldclim21.html}{worldclim}
 }
 \usage{
 data("BarleyRNOWC")
 }
 \description{
-200 samples with kernel row number observations from barley collection and 55 corresponding worldclim data.
+200 samples with kernel row number observations from barley collection
+and 55 corresponding worldclim data.
 }
 \examples{
 if(interactive()){
- # Load barley Kernel Row Number data with world climatic variables obtained from WorldClim database
+ # Load barley Kernel Row Number data with climatic variables
+ # obtained from WorldClim
  data("BarleyRNOWC")
  }
 }

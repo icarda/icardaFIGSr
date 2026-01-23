@@ -132,7 +132,8 @@ getCrops <- function() {
 
 
 #' @title Getting Accession Passport Data by Crop or Accession Numbers
-#' @description Return a data frame containing passport data of accessions filtered by crop name or accession numbers.
+#' @description Return a data frame containing passport data of accessions
+#'  filtered by crop name or accession numbers.
 #' @param crop Crop name.
 #' @param ori Country of origin (ISO 3166-1 alpha-3 code).
 #' @param IG List of accession numbers.
@@ -236,8 +237,10 @@ getTraits <- function(crop) {
 #' @description Return a data frame with scores for a specific trait for given accessions.
 #' @param IG Accession numbers.
 #' @param traitID Unique identifier of trait (from \code{\link[icardaFIGSr]{getTraits}}).
-#' @return A data frame with scores for the trait specified in \code{traitID} for the accessions given in \code{IG}.
-#' @details Valid inputs for \code{traitID} can be fetched using the \code{\link[icardaFIGSr]{getTraits}} function.
+#' @return A data frame with scores for the trait specified in
+#'  \code{traitID} for the accessions given in \code{IG}.
+#' @details Valid inputs for \code{traitID} can be fetched using
+#'  the \code{\link[icardaFIGSr]{getTraits}} function.
 #' @author Khadija Aouzal, Amal Ibnelhobyb, Zakaria Kehel, Fawzy Nawar
 #' @examples
 #' \dontrun{

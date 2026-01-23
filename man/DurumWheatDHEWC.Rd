@@ -5,17 +5,20 @@
 \alias{DurumWheatDHEWC}
 \title{DurumWheatDHEWC}
 \format{
-More details about the climate data can be found here \href{https://www.worldclim.org/data/worldclim21.html}{worldclim}
+More details about the climate data can be found here
+\href{https://www.worldclim.org/data/worldclim21.html}{worldclim}
 }
 \usage{
 data("DurumWheatDHEWC")
 }
 \description{
-193 samples of Days to heading from durum wheat collection and 55 worldclim data.
+193 samples of Days to heading from durum wheat collection
+and 55 worldclim data.
 }
 \examples{
 if(interactive()){
- # Load durum wheat Days to Heading data with world climatic variables obtained from WorldClim database
+ # Load durum wheat Days to Heading data with climatic variables
+ # obtained from WorldClim database
  data("DurumWheatDHEWC")
  }
 }

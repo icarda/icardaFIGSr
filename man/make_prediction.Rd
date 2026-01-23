@@ -9,15 +9,19 @@ make_prediction(newdata, y, positive = NULL, model, scale = FALSE, auc = FALSE)
 \arguments{
 \item{newdata}{A data frame. The test dataset.}
 
-\item{y}{A character string. The name of the target variable.}
+\item{y}{The name of the target variable.}
 
-\item{positive}{A character string. The positive class for the target variable if \code{y} is a factor. Default: \code{NULL}.}
+\item{positive}{The positive class for the target variable if \code{y} is a factor.
+Default: \code{NULL}.}
 
 \item{model}{A model object. The trained model returned by \code{caret::train}.}
 
-\item{scale}{A logical value. If \code{TRUE}, scales the variable importance values to between 0-100. Default: \code{FALSE}.}
+\item{scale}{A logical value. If \code{TRUE}, scales the variable importance values to between 0-100.
+Default: \code{FALSE}.}
 
-\item{auc}{A logical value. If \code{TRUE}, calculates the area under the ROC curve (AUC) for classification models. Default: \code{FALSE}.}
+\item{auc}{A logical value.
+If \code{TRUE}, calculates the area under the ROC curve (AUC) for classification models.
+Default: \code{FALSE}.}
 }
 \value{
 A list containing predictions, class probabilities, and corresponding plots.
@@ -27,7 +31,8 @@ A list containing predictions, class probabilities, and corresponding plots.
 }
 }
 \description{
-\code{make_prediction} makes predictions. It returns a list containing a data frame of predictions or class probabilities, and corresponding plots.
+\code{make_prediction} makes predictions.
+It returns a list containing a data frame of predictions or class probabilities, and corresponding plots.
 }
 \details{
 This function uses \code{caret}, \code{ggplot2}, and \code{plotROC} for calculations and plotting.

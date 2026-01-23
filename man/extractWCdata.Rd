@@ -21,13 +21,16 @@ extractWCdata(sites, long, lat, var, res = 2.5)
 Options are 0.5, 2.5, 5, or 10. Default is 2.5.}
 }
 \value{
-A \code{data.frame} merging the original \code{sites} data with the extracted climatic variables.
+A \code{data.frame} merging the original \code{sites} data
+with the extracted climatic variables.
 }
 \description{
-Extracts global climate data from the WorldClim 2.1 database for specific geographic locations provided in a data frame.
+Extracts global climate data from the WorldClim 2.1 database for
+specific geographic locations provided in a data frame.
 }
 \details{
-The function uses the \href{https://cran.r-project.org/package=geodata}{geodata} package to download WorldClim 2.1 data
+The function uses the \href{https://cran.r-project.org/package=geodata}{geodata}
+package to download WorldClim 2.1 data
 and \href{https://cran.r-project.org/package=terra}{terra} for fast spatial extraction.
 }
 \examples{

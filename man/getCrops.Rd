@@ -9,17 +9,14 @@ getCrops()
 getCrops()
 }
 \value{
-A list containing all crops available in ICARDA's Genebank Documentation System.
+A list containing all crops available in ICARDA's Genebank Database.
 
 A data frame with crop codes and names.
 }
 \description{
-this function allows to obtain a list of crops available in ICARDA's Genebank Database, it returns a list with codes and names of available crops.
+Returns a list of crops available in ICARDA's Genebank Database.
 
 Retrieve a list of available crops in ICARDA's Genebank.
-}
-\details{
-The crop codes and names are fetched from ICARDA's Genebank database.
 }
 \examples{
 \dontrun{
@@ -32,7 +29,7 @@ The crop codes and names are fetched from ICARDA's Genebank database.
  }
 }
 \author{
-Zakaria Kehel, Fawzy Nawar
+Zakaria Kehel, Fawzy Nawar, Khadija Aouzal
 
 Khadija Aouzal, Zakaria Kehel, Fawzy Nawar
 }

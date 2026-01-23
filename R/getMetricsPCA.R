@@ -1,12 +1,19 @@
 
 #' @title Performance Measures with PCA pre-processing
-#' @description getMetricsPCA allows to obtain performance measures from Confusion Matrix for algorithms with PCA pre-processing,it returns a data frame containing performance measures from the confusion matrix given by the \code{caret} package when algorithms have been run with PCA pre-processing.
-#' @param y expression. The class variable.
-#' @param yhat expression. The vector of predicted values.
-#' @param classtype character or numeric. The number of levels in \code{y}.
-#' @param model expression. The model object to which output of the model has been assigned.
-#' @return Outputs an object with performance measures calculated from the confusion matrix given by the \code{caret} package. A data frame is the resulting output with the first column giving the name of the performance measure, and the second column giving the corresponding value.
-#' @details Works with target variables that have two, three, four, six or eight classes. Similar to \code{\link[icardaFIGSr]{getMetrics}} but used in the case where models have been run with PCA specified as an option for the \code{preProcess} argument in the \code{train} function of \code{caret}.
+#' @description getMetricsPCA allows to obtain performance measures from Confusion Matrix for algorithms with PCA pre-processing.
+#'  It returns a data frame containing performance measures from the confusion matrix given
+#'  by the \code{caret} package when algorithms have been run with PCA pre-processing.
+#' @param y The class variable.
+#' @param yhat The vector of predicted values.
+#' @param classtype The number of levels in \code{y}.
+#' @param model The model object to which output of the model has been assigned.
+#' @return Outputs an object with performance measures calculated from the confusion matrix
+#'  given by the \code{caret} package.
+#'  A data frame is the resulting output with the first column
+#'  giving the name of the performance measure, and the second column giving the corresponding value.
+#' @details Works with target variables that have two, three, four, six or eight classes.
+#'  Similar to \code{\link[icardaFIGSr]{getMetrics}} but used in the case where models have been run with PCA
+#'  specified as an option for the \code{preProcess} argument in the \code{train} function of \code{caret}.
 #' @author Khadija Aziz, Zainab Azough, Zakaria Kehel, Bancy Ngatia
 #' @examples
 #' \dontrun{

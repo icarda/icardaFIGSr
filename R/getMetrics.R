@@ -1,14 +1,20 @@
 #' @title Performance Measures for classification tasks
-#' @description this function allows to obtain performance measures from Confusion Matrix, it returns a data frame containing performance measures from the confusion matrix given by the \code{caret} package.
+#' @description this function allows to obtain performance measures from Confusion Matrix,
+#'  it returns a data frame containing performance measures from the confusion matrix given by the \code{caret} package.
 #' @param y expression. The class variable.
 #' @param yhat expression. The vector of predicted values.
 #' @param classtype character or numeric. The number of levels in \code{y}.
-#' @return Outputs an object with performance measures calculated from the confusion matrix given by the \code{caret} package. A data frame is the resulting output with the first column giving the name of the performance measure, and the second column giving the corresponding value.
+#' @return Outputs an object with performance measures calculated from the confusion matrix
+#'  given by the \code{caret} package. A data frame is the resulting output with the first column
+#'  giving the name of the performance measure, and the second column giving the corresponding value.
 #' @details \code{getMetrics} works with target variables that have two, three, four, six or eight classes.
 #'
-#' The function relies on the \code{caret} package to obtain the confusion matrix from which performance measures are extracted. It can be run for several algorithms, and the results combined into one data frame for easier comparison (see section 'Examples').
+#' The function relies on the \code{caret} package to obtain the confusion matrix
+#'  from which performance measures are extracted. It can be run for several algorithms,
+#'  and the results combined into one data frame for easier comparison (see section 'Examples').
 #'
-#' Predictions have to be obtained beforehand and used as input for \code{yhat}. The \code{predict.train} function in \code{caret} should be run without argument \code{type} when obtaining the predictions.
+#' Predictions have to be obtained beforehand and used as input for \code{yhat}.
+#'  The \code{predict.train} function in \code{caret} should be run without argument \code{type} when obtaining the predictions.
 #' @author Zakaria Kehel, Bancy Ngatia, Khadija Aziz, Chafik Analy
 #' @examples
 #' \dontrun{

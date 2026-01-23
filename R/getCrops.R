@@ -1,8 +1,7 @@
 #' @title Crops Available in ICARDA's Genebank
-#' @description this function allows to obtain a list of crops available in ICARDA's Genebank Database, it returns a list with codes and names of available crops.
-#' @return A list containing all crops available in ICARDA's Genebank Documentation System.
-#' @details The crop codes and names are fetched from ICARDA's Genebank database.
-#' @author Zakaria Kehel, Fawzy Nawar 
+#' @description Returns a list of crops available in ICARDA's Genebank Database.
+#' @return A list containing all crops available in ICARDA's Genebank Database.
+#' @author Zakaria Kehel, Fawzy Nawar, Khadija Aouzal
 #' @examples
 #' \dontrun{
 #'  # Get list of available crops

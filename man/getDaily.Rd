@@ -7,25 +7,31 @@
 getDaily(sites, var, cv = FALSE)
 }
 \arguments{
-\item{sites}{character. Names of sites from which to extract data.}
+\item{sites}{character vector. Names of sites from which to extract data.}
 
-\item{var}{character. Climatic variable(s) to be extracted.}
+\item{var}{character vector. Climatic variable(s) to be extracted.}
 
-\item{cv}{boolean. If \code{TRUE}, returns a data frame with coefficient of variation for each variable for each day of the calendar year. Default: FALSE.}
+\item{cv}{boolean.
+If \code{TRUE}, returns a data frame with coefficient of variation for each variable for each day of the calendar year.
+Default: FALSE.}
 }
 \value{
 An object with specified climatic variables for specified site code in \code{sites}.
 
-If \code{cv = TRUE}, the object is a list containing two data frames: the first one with average daily values of climatic variables, and the second one with daily coefficient of variation for each climatic variable.
+If \code{cv = TRUE}, the object is a list containing two data frames:
+the first one with average daily values of climatic variables,
+and the second one with daily coefficient of variation for each climatic variable.
 
 If \code{cv = FALSE}, the object is a data frame with average daily values of climatic variables.
 }
 \description{
-this function extracts daily values of climatic variables from ICARDA Data, it returns a list or data frame based on specified climatic variables. Each variable will have 365 values for each day of the calendar year.
+Extracts daily values of climatic variables.
 }
 \details{
-\code{getDaily} will extract the daily climatic variables specified in \code{var} for the sites specified in \code{sites} from an online repository.
-.         The function then extracts average daily values starting from the first day of the calendar year, until the last day of the calendar year. Thus, returning 365 columns with daily values are created for each variable.
+\code{getDaily} extracts the daily climatic variables specified in \code{var}
+for the sites specified in \code{sites} from an online repository.
+The function then extracts average daily values starting from the first day of the calendar year,
+until the last day of the calendar year.
 }
 \examples{
 \dontrun{

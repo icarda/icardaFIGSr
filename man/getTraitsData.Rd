@@ -12,13 +12,15 @@ getTraitsData(IG, traitID)
 \item{traitID}{Unique identifier of trait (from \code{\link[icardaFIGSr]{getTraits}}).}
 }
 \value{
-A data frame with scores for the trait specified in \code{traitID} for the accessions given in \code{IG}.
+A data frame with scores for the trait specified in
+\code{traitID} for the accessions given in \code{IG}.
 }
 \description{
 Return a data frame with scores for a specific trait for given accessions.
 }
 \details{
-Valid inputs for \code{traitID} can be fetched using the \code{\link[icardaFIGSr]{getTraits}} function.
+Valid inputs for \code{traitID} can be fetched using
+the \code{\link[icardaFIGSr]{getTraits}} function.
 }
 \examples{
 \dontrun{

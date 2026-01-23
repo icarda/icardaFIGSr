@@ -138,7 +138,6 @@ rf.RNO <- tuneTrain(data = BarleyRNOWC,
                       method = 'rf',
                       summary = multiClassSummary,
                       imbalanceMethod = "up",
-                      imbalanceThreshold = 0.2,
                       process = c("scale", "center"),
                       classProbs = TRUE,
                       repeats = 3)
@@ -232,7 +231,6 @@ rf.DHE_class <- tuneTrain(data = DurumWheatDHEWC,
                               parallelComputing = FALSE,
                               summary = multiClassSummary,
                               imbalanceMethod ="up", # Here we upsample the less represented class (3)
-                              imbalanceThreshold = 0.2,
                               classProbs = TRUE,
                               repeats = 3)
 # List returned objects

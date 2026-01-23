@@ -7,22 +7,29 @@
 getMetricsPCA(yhat, y, classtype, model)
 }
 \arguments{
-\item{yhat}{expression. The vector of predicted values.}
+\item{yhat}{The vector of predicted values.}
 
-\item{y}{expression. The class variable.}
+\item{y}{The class variable.}
 
-\item{classtype}{character or numeric. The number of levels in \code{y}.}
+\item{classtype}{The number of levels in \code{y}.}
 
-\item{model}{expression. The model object to which output of the model has been assigned.}
+\item{model}{The model object to which output of the model has been assigned.}
 }
 \value{
-Outputs an object with performance measures calculated from the confusion matrix given by the \code{caret} package. A data frame is the resulting output with the first column giving the name of the performance measure, and the second column giving the corresponding value.
+Outputs an object with performance measures calculated from the confusion matrix
+given by the \code{caret} package.
+A data frame is the resulting output with the first column
+giving the name of the performance measure, and the second column giving the corresponding value.
 }
 \description{
-getMetricsPCA allows to obtain performance measures from Confusion Matrix for algorithms with PCA pre-processing,it returns a data frame containing performance measures from the confusion matrix given by the \code{caret} package when algorithms have been run with PCA pre-processing.
+getMetricsPCA allows to obtain performance measures from Confusion Matrix for algorithms with PCA pre-processing.
+It returns a data frame containing performance measures from the confusion matrix given
+by the \code{caret} package when algorithms have been run with PCA pre-processing.
 }
 \details{
-Works with target variables that have two, three, four, six or eight classes. Similar to \code{\link[icardaFIGSr]{getMetrics}} but used in the case where models have been run with PCA specified as an option for the \code{preProcess} argument in the \code{train} function of \code{caret}.
+Works with target variables that have two, three, four, six or eight classes.
+Similar to \code{\link[icardaFIGSr]{getMetrics}} but used in the case where models have been run with PCA
+specified as an option for the \code{preProcess} argument in the \code{train} function of \code{caret}.
 }
 \examples{
 \dontrun{

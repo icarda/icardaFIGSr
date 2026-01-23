@@ -1,11 +1,16 @@
 #' @title Make Predictions
-#' @description `make_prediction` makes predictions. It returns a list containing a data frame of predictions or class probabilities, and corresponding plots.
+#' @description `make_prediction` makes predictions.
+#'  It returns a list containing a data frame of predictions or class probabilities, and corresponding plots.
 #' @param newdata A data frame. The test dataset.
-#' @param y A character string. The name of the target variable.
-#' @param positive A character string. The positive class for the target variable if `y` is a factor. Default: `NULL`.
+#' @param y The name of the target variable.
+#' @param positive The positive class for the target variable if `y` is a factor.
+#'  Default: `NULL`.
 #' @param model A model object. The trained model returned by `caret::train`.
-#' @param scale A logical value. If `TRUE`, scales the variable importance values to between 0-100. Default: `FALSE`.
-#' @param auc A logical value. If `TRUE`, calculates the area under the ROC curve (AUC) for classification models. Default: `FALSE`.
+#' @param scale A logical value. If `TRUE`, scales the variable importance values to between 0-100.
+#'  Default: `FALSE`.
+#' @param auc A logical value.
+#'  If `TRUE`, calculates the area under the ROC curve (AUC) for classification models.
+#'  Default: `FALSE`.
 #' @return A list containing predictions, class probabilities, and corresponding plots.
 #'
 #' - For classification models, class probabilities and ROC curves are included.
