@@ -1,60 +1,55 @@
-Package: icardaFIGSr
 Type: Package
-Title: Subsetting using Focused Identification of the Germplasm Strategy (FIGS)
+Package: icardaFIGSr
+Title: Subsetting using Focused Identification of the Germplasm Strategy
+    (FIGS)
 Version: 2.0.0
-Authors@R:
-       c(person(given = "Zakaria",
-           family = "Kehel",
-           role = c("aut", "cre"),
-           email = "z.kehel@cgiar.org"),
-       person(given = "Chafik",
-           family = "Analy",
-           role = "aut"),       
-       person(given = "Khadija",
-           family = "Aouzal",
-           role = "aut"),       
-       person(given = "Khadija",
-           family = "Aziz",
-           role = "aut"),
-       person(given = "Bancy",
-           family = "Ngatia",
-           role = "aut"),
-       person(given = "Zainab",
-           family = "Azough",
-           role = "ctb"),
-       person(given = "Amal",
-           family = "Ibnelhobyb",
-           role = "ctb"),
-       person(given = "Fawzy",
-           family = "Nawar",
-           role = "ctb"))
-Description: The icardaFIGSr package provides tools for running the Focused Identification of the Germplasm Strategy (FIGS).
-    This strategy helps create optimal subsets from genebank collections for research and breeding purposes.
+Authors@R: c(
+    person("Zakaria", "Kehel", , "z.kehel@cgiar.org", role = c("aut", "cre")),
+    person("Chafik", "Analy", role = "aut"),
+    person("Khadija", "Aouzal", role = "aut"),
+    person("Khadija", "Aziz", role = "aut"),
+    person("Bancy", "Ngatia", role = "aut"),
+    person("Zainab", "Azough", role = "ctb"),
+    person("Amal", "Ibnelhobyb", role = "ctb"),
+    person("Fawzy", "Nawar", role = "ctb"),
+    person("Ortiz", "Tamara", role = "ctb")
+  )
+Description: The icardaFIGSr package provides tools for running the
+    Focused Identification of the Germplasm Strategy (FIGS).  This
+    strategy helps create optimal subsets from genebank collections for
+    research and breeding purposes.
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-Imports:
-    caret,
-    parallel,
-    doParallel,
-    plyr,
-    dplyr,
-    tidyr,
-    ggplot2,
-    httr,
-    reshape2,
-    raster,
-    sf,
-    leaflet,
-    pROC,
-    plotROC
-Suggests:
-    rmarkdown,
-    knitr
-NeedsCompilation: no
 Depends:
     R (>= 3.5.0)
-VignetteBuilder: knitr
+Imports:
+    caret,
+    doParallel,
+    dplyr,
+    geodata,
+    ggplot2,
+    httr2,
+    leaflet,
+    lifecycle,
+    parallel,
+    plotROC,
+    plyr,
+    pROC,
+    purrr,
+    reshape2,
+    stats,
+    tcltk,
+    terra,
+    tidyr,
+    utils
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: 
+    knitr
 BuildVignettes: true
+Encoding: UTF-8
+LazyData: true
+NeedsCompilation: no
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
