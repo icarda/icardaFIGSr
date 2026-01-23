@@ -2,22 +2,18 @@
 % Please edit documentation in R/getData.R
 \name{getTraits}
 \alias{getTraits}
-\title{Getting Traits Associated with Crops from the ICARDA's Genebank Database}
+\title{Getting Traits Descriptors for a Specific Crop}
 \usage{
 getTraits(crop)
 }
 \arguments{
-\item{crop}{character. Crop for which to get available traits.}
+\item{crop}{Crop name.}
 }
 \value{
-A data frame with traits that are associated with the crop specified in \code{crop}.
+A data frame with traits descriptors associated with the specified crop.
 }
 \description{
-Return a data frame containing traits associated with a particular crop, their description and related identifiers.
-}
-\details{
-\code{getTraits} returns a data frame of traits together with their IDs and descriptions.
-The list of available crops to use as input for \code{crop} can be fetched from ICARDA's Genebank database using \code{\link[icardaFIGSr]{getCrops}}.
+Return a data frame with traits descriptors associated with a specific crop.
 }
 \examples{
 \dontrun{

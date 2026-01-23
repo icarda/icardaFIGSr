@@ -2,23 +2,23 @@
 % Please edit documentation in R/getData.R
 \name{getTraitsData}
 \alias{getTraitsData}
-\title{Getting Trait Values of Accessions for a Specific Trait}
+\title{Getting Trait Data for Given Accessions}
 \usage{
 getTraitsData(IG, traitID)
 }
 \arguments{
-\item{IG}{factor. Unique identifier of accession.}
+\item{IG}{Accession numbers.}
 
-\item{traitID}{integer. Unique identifier of trait (from \code{\link[icardaFIGSr]{getTraits}}).}
+\item{traitID}{Unique identifier of trait (from \code{\link[icardaFIGSr]{getTraits}}).}
 }
 \value{
 A data frame with scores for the trait specified in \code{traitID} for the accessions given in \code{IG}.
 }
 \description{
-Return a data frame with observed values of accessions for associated Trait
+Return a data frame with scores for a specific trait for given accessions.
 }
 \details{
-Possible inputs for \code{traitID} can be found using the \code{\link[icardaFIGSr]{getTraits}} function (see section 'Examples').
+Valid inputs for \code{traitID} can be fetched using the \code{\link[icardaFIGSr]{getTraits}} function.
 }
 \examples{
 \dontrun{
@@ -26,7 +26,7 @@ if(interactive()){
  # Check trait ID for septoria and get septoria data for durum wheat
  durum <- getAccessions(crop = 'Durum wheat', coor = TRUE)
  durumTraits <- getTraits(crop = 'Durum wheat')
- septoria <- getTraitsData(IG = durum$IG, traitID = 145)
+ septoria <- getTraitsData(IG = durum$AccessionNumber, traitID = 145)
  }
 }
 }

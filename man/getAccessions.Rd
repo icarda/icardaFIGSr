@@ -2,12 +2,12 @@
 % Please edit documentation in R/getData.R
 \name{getAccessions}
 \alias{getAccessions}
-\title{Retrieving ICARDA Genebank Accession Passport Data.}
+\title{Getting Accession Passport Data by Crop or Accession Numbers}
 \usage{
 getAccessions(
   crop = "",
   ori = NULL,
-  IG = "",
+  IG = NULL,
   doi = lifecycle::deprecated(),
   taxon = lifecycle::deprecated(),
   collectionYear = lifecycle::deprecated(),
@@ -17,29 +17,29 @@ getAccessions(
 )
 }
 \arguments{
-\item{crop}{Crop name. Default: "".}
+\item{crop}{Crop name.}
 
-\item{ori}{Country of origin (ISO 3166-1 alpha-3 code). Default: NULL.}
+\item{ori}{Country of origin (ISO 3166-1 alpha-3 code).}
 
-\item{IG}{List of accession numbers. Default: "".}
+\item{IG}{List of accession numbers.}
 
-\item{doi}{\text{\link{Deprecated}} No longer used as of version 2.0.0.}
+\item{doi}{\code{[Deprecated]} No longer used as of version 2.0.0.}
 
-\item{taxon}{\text{\link{Deprecated}} No longer used as of version 2.0.0.}
+\item{taxon}{\code{[Deprecated]} No longer used as of version 2.0.0.}
 
-\item{collectionYear}{\text{\link{Deprecated}} No longer used as of version 2.0.0.}
+\item{collectionYear}{\code{[Deprecated]} No longer used as of version 2.0.0.}
 
-\item{coor}{If \code{TRUE}, returns only georeferenced accessions. Default: FALSE.}
+\item{coor}{If \code{TRUE}, returns only georeferenced accessions.}
 
-\item{available}{If \code{TRUE}, returns only available accessions for distribution, Default: FALSE.}
+\item{available}{If \code{TRUE}, returns only available accessions for distribution.}
 
-\item{other_id}{If \code{TRUE}, returns other IDs associated with accessions. Default: FALSE.}
+\item{other_id}{If \code{TRUE}, returns other IDs associated with accessions.}
 }
 \value{
 Data frame of accession passport data by crop or accession numbers.
 }
 \description{
-Get ICARDA Genebank passport data by crop or accession numbers.
+Return a data frame containing passport data of accessions filtered by crop name or accession numbers.
 }
 \details{
 Available crops can be retrieved using \code{\link[icardaFIGSr]{getCrops}}.

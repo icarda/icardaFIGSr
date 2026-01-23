@@ -47,7 +47,7 @@
 .get_data <- function(url, body = NULL) {
 
   # Set up OAuth client
-  client <- oauth_client(
+  client <- httr2::oauth_client(
     id        = "7ac1999e52ff54d84a2fc8ca018544e0",
     token_url = "https://grs.icarda.org/api/v1/token",
     auth      = "body",
@@ -61,14 +61,14 @@
 
   creds <- get(".credentials", envir = .icardaFIGSEnv)
 
-  req <- request(url)
+  req <- httr2::request(url)
 
   if (!is.null(body)) {
-    req <- req %>% req_body_json(body)
+    req <- req %>% httr2::req_body_json(body)
   }
 
   req <- req %>%
-    req_oauth_password(
+    httr2::req_oauth_password(
       client     = client,
       username   = creds$username,
       password   = creds$password,
@@ -76,7 +76,7 @@
     )
 
   resp <- tryCatch({
-    req_perform(req) %>% resp_body_json()
+    httr2::req_perform(req) %>% httr2::resp_body_json()
     #req_dry_run(req)
   }, error = function(e) {
     
@@ -87,15 +87,15 @@
       .authenticate()
 
       # Retry with new credentials
-      request(url) %>%
-        req_body_json(body) %>%
-        req_oauth_password(
+      httr2::request(url) %>%
+        httr2::req_body_json(body) %>%
+        httr2::req_oauth_password(
           client   = client,
           username = creds$username,
           password = creds$password,
           scope   = "read"
         ) %>%
-        req_perform()
+        httr2::req_perform()
     } else {
       stop(e)
     }

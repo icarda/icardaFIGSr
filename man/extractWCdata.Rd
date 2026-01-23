@@ -2,44 +2,47 @@
 % Please edit documentation in R/extractWCdata.R
 \name{extractWCdata}
 \alias{extractWCdata}
-\title{Extracting historical climate data from WorldClim 2.1}
+\title{Extract Historical Climate Data from WorldClim 2.1}
 \usage{
 extractWCdata(sites, long, lat, var, res = 2.5)
 }
 \arguments{
-\item{sites}{object of class "data.frame" with coordinates of sites from which to extract data.}
+\item{sites}{A \code{data.frame} containing the coordinates of the target locations.}
 
-\item{long}{character. Name of column from \code{sites} with longitude.}
+\item{long}{The name of the column in \code{sites} representing longitude.}
 
-\item{lat}{character. Name of column from \code{sites} with latitude.}
+\item{lat}{The name of the column in \code{sites} representing latitude.}
 
-\item{var}{character. Climatic variable(s) to be extracted: 'tavg', 'tmin', 'tmax', 'prec', 'bio', 'srad', 'vapr', 'wind'.}
+\item{var}{Character vector. Climatic variable(s) to extract: \code{'tavg'},
+\code{'tmin'}, \code{'tmax'}, \code{'prec'}, \code{'bio'}, \code{'srad'},
+\code{'vapr'}, or \code{'wind'}.}
 
-\item{res}{numeric. Spatial resolution. Default 2.5.}
+\item{res}{Numeric. Spatial resolution in minutes of a degree.
+Options are 0.5, 2.5, 5, or 10. Default is 2.5.}
 }
 \value{
-An object of class "data.frame" with specified climatic variables for coordinates in \code{sites}.
+A \code{data.frame} merging the original \code{sites} data with the extracted climatic variables.
 }
 \description{
-extractWCdata returns a data frame based on specified climatic variables.
-This function modifies the \href{https://github.com/rspatial/raster/blob/master/R/getData.R}{getData function from the raster R package} to extract world climate data of version 2.1 instead of version 1.4.
+Extracts global climate data from the WorldClim 2.1 database for specific geographic locations provided in a data frame.
 }
 \details{
-A grid can be created with any particular coordinates and used as input for \code{sites} (see section 'Examples'). \code{extractWCdata} will use the given coordinates to extract data from the WorldClim 2.1 database.
-The extracted data will most likely contain NAs for sites where climate data is not available. These should be removed or imputed before using the data to make predictions.
+The function uses the \href{https://cran.r-project.org/package=geodata}{geodata} package to download WorldClim 2.1 data
+and \href{https://cran.r-project.org/package=terra}{terra} for fast spatial extraction.
 }
 \examples{
 \dontrun{
- # Create grid
- long <- seq(-16, 115, length = 3)
- lat <- seq(25, 59, length = 3)
- sf <- expand.grid(x = sp1, y = sp2)
+# Define coordinates
+my_sites <- data.frame(
+  site_id = 1:3,
+  lon = c(-16, 50, 115),
+  lat = c(25, 40, 59)
+)
 
- # Extract data using grid
- sp.df0 <- extractWCdata(sf, long = 'long', lat = 'lat', var = 'bio')
- sp.df <- na.omit(sp.df0)
- }
+# Extract bioclimatic variables
+clim_data <- extractWCdata(my_sites, long = "lon", lat = "lat", var = "bio")
+}
 }
 \author{
-Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal, Chafik Analy
+Zakaria Kehel, Fawzy Nawar, Bancy Ngatia, Khadija Aouzal, Chafik Analy, Tamara Ortiz
 }
