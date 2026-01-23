@@ -1,0 +1,25 @@
+# septoriaDurumWC
+
+A sample data including monthly data for 3 climatic variables (tmin,
+tmax and precipitation), 19 bioclimatic variables, and evaluation for
+Septoria Tritici
+
+## Usage
+
+``` r
+data("septoriaDurumWC")
+```
+
+## Format
+
+200 sites from durum wheat collection and their monthly climatic data
+and evaluation for Septoria Tritici.
+
+## Examples
+
+``` r
+if(interactive()){
+ #Load durum wheat data with septoria scores and climatic variables obtained from WorldClim
+ data("septoriaDurumWC")
+}
+```

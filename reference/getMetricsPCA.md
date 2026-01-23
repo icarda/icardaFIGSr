@@ -1,0 +1,78 @@
+# Performance Measures with PCA pre-processing
+
+getMetricsPCA allows to obtain performance measures from Confusion
+Matrix for algorithms with PCA pre-processing. It returns a data frame
+containing performance measures from the confusion matrix given by the
+`caret` package when algorithms have been run with PCA pre-processing.
+
+## Usage
+
+``` r
+getMetricsPCA(yhat, y, classtype, model)
+```
+
+## Arguments
+
+- yhat:
+
+  The vector of predicted values.
+
+- y:
+
+  The class variable.
+
+- classtype:
+
+  The number of levels in `y`.
+
+- model:
+
+  The model object to which output of the model has been assigned.
+
+## Value
+
+Outputs an object with performance measures calculated from the
+confusion matrix given by the `caret` package. A data frame is the
+resulting output with the first column giving the name of the
+performance measure, and the second column giving the corresponding
+value.
+
+## Details
+
+Works with target variables that have two, three, four, six or eight
+classes. Similar to [`getMetrics`](getMetrics.md) but used in the case
+where models have been run with PCA specified as an option for the
+`preProcess` argument in the `train` function of `caret`.
+
+## See also
+
+[`confusionMatrix`](https://rdrr.io/pkg/caret/man/confusionMatrix.html),
+[`predict.train`](https://rdrr.io/pkg/caret/man/predict.train.html)
+
+## Author
+
+Khadija Aziz, Zainab Azough, Zakaria Kehel, Bancy Ngatia
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+ # Obtain predictions from several previously run models
+ dataX <- subset(data, select = -y)
+ pred.knn <- predict(model.knn, newdata = dataX)
+ pred.rf <- predict(model.rf, newdata = dataX)
+
+ # Get metrics for several algorithms
+ metrics.knn <- getMetricsPCA(y = data$y, yhat = pred.knn,
+                              classtype = 2, model = model.knn)
+ metrics.rf <- getMetricsPCA(y = data$y, yhat = pred.rf,
+                             classtype = 2, model = model.rf)
+
+ # Indexing for 2-class models to remove extra column with
+ # names of performance measures
+ metrics.all <- cbind(metrics.knn, metrics.rf[ , 2])
+
+ # No indexing needed for 3-, 4-, 6- or 8-class models
+ metrics.all <- cbind(metrics.knn, metrics.rf)
+ } # }
+```
