@@ -42,8 +42,10 @@ Imports:
     tidyr,
     utils
 Suggests:
+    e1071,
     knitr,
     MLmetrics,
+    randomForest,
     rmarkdown,
     testthat
 VignetteBuilder: 
