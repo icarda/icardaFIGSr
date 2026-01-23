@@ -21,10 +21,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             libcurl4-openssl-dev \
-            libfontconfig1-dev \
-            libfreetype6-dev \
-            libharfbuzz-dev \
-            libfribidi-dev \
+            pandoc \
+            pandoc-citeproc \
+            libcairo2-dev \
+            libxt-dev \
+            libssl-dev \
+            libssh2-1-dev \
+            libgdal-dev \
+            gdal-bin \
+            libproj-dev \
+            proj-data \
+            proj-bin \
+            libgeos-dev \
+            libudunits2-dev \
+            libabsl-dev \ 
             pkg-config
 
       - name: Set up R
