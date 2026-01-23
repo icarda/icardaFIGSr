@@ -33,7 +33,7 @@ jobs:
             proj-bin \
             libgeos-dev \
             libudunits2-dev \
-            libabsl-dev \ 
+            libabsl-dev \
             pkg-config
 
       - name: Set up R
