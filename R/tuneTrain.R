@@ -18,7 +18,9 @@
 #' @param process Character vector. Pre-processing steps (e.g., "center", "scale").
 #' Default: \code{c("center", "scale")}.
 #' @param summary Function. Performance metric computation. Default: \code{multiClassSummary}.
-#' @param imbalanceMethod Character. Subsampling method ("up" or "down"). Default: \code{NULL}.
+#' @param positive Character. The positive class for binary classification.
+#' Default: \code{NULL}.
+#' @param imbalanceMethod `r lifecycle::badge("experimental")` Character. Subsampling method ("up" or "down"). Default: \code{NULL}.
 #' @param ... Additional arguments passed to \code{\link[caret]{trainControl}} and \code{\link[caret]{train}}.
 #' 
 #' @return #' @return A \code{list} containing:
@@ -56,7 +58,7 @@
 #'                      y =  'ST_S',
 #'                      method = 'treebag',
 #'                      summary = multiClassSummary,
-#'                      repeats = 3)
+#'                      repeats = 3, positive = 'R')
 #' 
 #' ## Binary classification of RNO with imbalanced data
 #' knn.RNO <- tuneTrain(data = BarleyRNOWC,
@@ -84,7 +86,6 @@
 #' @importFrom ggplot2 ggplot aes geom_histogram theme_bw scale_colour_brewer scale_fill_brewer labs geom_point geom_line geom_abline facet_wrap ggtitle coord_equal geom_smooth
 #' @importFrom stats predict
 #' @importFrom pROC auc roc ggroc multiclass.roc
-#' @importFrom lifecycle deprecate_warn
 #' @export
 
 tuneTrain <- function(data, y, p = 0.7,
@@ -95,32 +96,57 @@ tuneTrain <- function(data, y, p = 0.7,
                       number = 10, repeats = 10,
                       process = c("center", "scale"),
                       summary = multiClassSummary,
+                      positive = NULL,
                       imbalanceMethod = NULL, ...) {
-
-  # deprecation warning for classProbs argument, using lifecycle package
-  if (lifecycle::is_present(classProbs)) {
-      lifecycle::deprecate_warn("2.0.0", "tuneTrain(classProbs)",
-    details = "The 'classProbs' argument is deprecated and will be removed in future versions. 
-    The function will automatically detect the type of task (classification or regression) based on the target variable.")      
-    }
 
   # Ensure target variable exists in the dataset
   if (!y %in% names(data)) stop("Error: Target variable '", y, "' not found in the dataset.")
 
-  # Set a seed for reproducibility
-  set.seed(1234)
+  # Level Sanitization and Mapping
+  if (is.factor(data[[y]])) {
+    orig_levels <- levels(data[[y]])
+    valid_levels <- make.names(orig_levels)
+    name_map <- setNames(orig_levels, valid_levels)
+    
+    # Update the data to valid names for caret
+    levels(data[[y]]) <- valid_levels
+    
+    # Positive Class Handling
+    if (length(valid_levels) == 2) {
+      if (is.null(positive)) {
+        # Default to the first alphabetical original level
+        display_positive <- orig_levels[1]
+        positive <- valid_levels[1]
+        message("Positive class not defined. Defaulting to the first alphabetical class: '", display_positive, "'.")
+      } else {
+        # Store original for plots, sanitize for logic
+        display_positive <- as.character(positive)
+        positive <- make.names(display_positive)
+        
+        if (!(positive %in% valid_levels)) {
+          stop("Provided positive class '", display_positive, "' not found in levels: ", 
+               paste(orig_levels, collapse = ", "))
+        }
+      }
+    }
+  }
 
   # Parallel computing initialization if enabled
   if (parallelComputing) {
+    closeAllConnections()
     cores <- parallel::detectCores()
     cls <-  parallel::makeCluster(max(1, cores - 1))
     doParallel::registerDoParallel(cls)
-    on.exit({parallel::stopCluster(cls)}, add = TRUE)
+    on.exit({if (exists("cls")) parallel::stopCluster(cls)
+      foreach::registerDoSEQ()
+      }, add = TRUE)
   }
-
+  
+  # Set a seed for reproducibility
+  set.seed(1234)
+  
   # Determine if classification or regression
   if (is.factor(data[[y]])) {
-    levels(data[[y]]) <- make.names(levels(data[[y]]))
     subsampling <- imbalanceMethod
     classProbs <- TRUE
   }
@@ -163,7 +189,8 @@ tuneTrain <- function(data, y, p = 0.7,
   }
   
   # Evaluating the model and getting results
-  return(.evaluate_model(train.mod, tune.mod, testx, testy, data.train, data.test))
+  return(.evaluate_model(train.mod, tune.mod, testx, testy, data.train, 
+                         data.test, positive, display_positive, name_map))
   
 }
 
@@ -190,7 +217,8 @@ tuneTrain <- function(data, y, p = 0.7,
 }
 
 # Internal helper for evaluating the model
-.evaluate_model <- function(train_mod, tune_mod, testx, testy, d_train, d_test) {
+.evaluate_model <- function(train_mod, tune_mod, testx, testy, 
+                            d_train, d_test, positive = NULL, display_positive = NULL, name_map = NULL) {
   preds <- stats::predict(train_mod, testx)
   # Common components
   res <- list(Tuning = tune_mod, Training = train_mod, 
@@ -202,12 +230,35 @@ tuneTrain <- function(data, y, p = 0.7,
     # Classification task
     probs <- stats::predict(train_mod, testx, type = "prob")
     res$ModelQuality <- caret::confusionMatrix(preds, testy)
-    res$ProbabilitiesPlot <- .plot_class_probs(probs)
+    res$ProbabilitiesPlot <- .plot_class_probs(probs, name_map)
     
     # ROC Logic
     if (nlevels(testy) == 2) {
-      roc_obj <- pROC::roc(testy, probs[,2], quiet = TRUE)
-      res$ROC_Plot <- pROC::ggroc(roc_obj) + ggplot2::ggtitle(paste("AUC:", round(pROC::auc(roc_obj), 2)))
+      # Identify the negative class
+      all_levels <- levels(testy)
+      negative_class <- setdiff(all_levels, positive)
+
+      roc_obj <- pROC::roc(response = testy, 
+                          predictor = probs[[positive]], 
+                          levels = c(negative_class, positive),
+                          direction = "<",
+                          quiet = TRUE)
+      
+      auc_val <- round(pROC::auc(roc_obj), 4)
+      
+      roc_plot_untitled <- pROC::ggroc(roc_obj) + 
+        ggplot2::theme_bw() +
+        ggplot2::annotate("text", x = 0.5, y = 0.5, 
+                          label = paste("AUC =", auc_val)) 
+      
+      if(display_positive != positive)
+        res$ROC_Plot <- roc_plot_untitled +
+          ggplot2::labs(title = paste("ROC Curve for Class", display_positive),
+                        subtitle = paste("Model-internal name:", positive))
+      else
+        res$ROC_Plot <- roc_plot_untitled + 
+          ggplot2::labs(title = paste("ROC Curve for Class", display_positive))
+        
     } else {
       # Multiclass ROC
       res$AUC_Values <- sapply(colnames(probs), function(cl) {
@@ -227,7 +278,7 @@ tuneTrain <- function(data, y, p = 0.7,
         data.frame(
           fpr = 1 - r$specificities, # false positive rate
           tpr = r$sensitivities, # true positive rate
-          Curve = class_names[i] 
+          Curve = name_map[[class_names[i]]]
         )
       })
       
@@ -272,9 +323,13 @@ tuneTrain <- function(data, y, p = 0.7,
 }
 
 # Internal helper for plotting class probabilities
-.plot_class_probs <- function(probs) {
+.plot_class_probs <- function(probs, name_map) {
   df <- utils::stack(probs)
   colnames(df) <- c("Probability", "Class")
+  
+  df$Class <- factor(df$Class, 
+                     levels = names(name_map), 
+                     labels = as.character(name_map))
   
   ggplot2::ggplot(df, ggplot2::aes(x = Probability, fill = Class, color = Class)) +
     ggplot2::geom_histogram(alpha = 0.4, position = "identity", binwidth = 0.05) +

@@ -16,6 +16,7 @@ tuneTrain(
   repeats = 10,
   process = c("center", "scale"),
   summary = multiClassSummary,
+  positive = NULL,
   imbalanceMethod = NULL,
   ...
 )
@@ -46,7 +47,10 @@ Default: \code{c("center", "scale")}.}
 
 \item{summary}{Function. Performance metric computation. Default: \code{multiClassSummary}.}
 
-\item{imbalanceMethod}{Character. Subsampling method ("up" or "down"). Default: \code{NULL}.}
+\item{positive}{Character. The positive class for binary classification.
+Default: \code{NULL}.}
+
+\item{imbalanceMethod}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} Character. Subsampling method ("up" or "down"). Default: \code{NULL}.}
 
 \item{...}{Additional arguments passed to \code{\link[caret]{trainControl}} and \code{\link[caret]{train}}.}
 }
@@ -91,7 +95,7 @@ tree.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
                      y =  'ST_S',
                      method = 'treebag',
                      summary = multiClassSummary,
-                     repeats = 3)
+                     repeats = 3, positive = 'R')
 
 ## Binary classification of RNO with imbalanced data
 knn.RNO <- tuneTrain(data = BarleyRNOWC,
