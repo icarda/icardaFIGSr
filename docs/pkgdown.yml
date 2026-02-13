@@ -1,9 +1,0 @@
-pandoc: '2.18'
-pkgdown: 2.1.0
-pkgdown_sha: ~
-articles:
-  CropData: CropData.html
-  ML_Workflows: ML_Workflows.html
-  Sites_climate: Sites_climate.html
-  vignette: vignette.html
-last_built: 2025-12-18T09:21Z
