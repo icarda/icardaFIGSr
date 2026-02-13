@@ -40,7 +40,8 @@ Imports:
     tcltk,
     terra,
     tidyr,
-    utils
+    utils,
+    foreach
 Suggests:
     e1071,
     knitr,
