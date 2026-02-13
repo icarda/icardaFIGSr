@@ -29,17 +29,6 @@ The response to Septoria Tritici is labeled as `R` for `Resistant` and `S` for `
 
 * **R (Resistant):** represents samples/observations that are resistant to Septoria. This level indicates the wheat genotypes or environmental conditions where Septoria's impact is minimal or absent.
 * **S (Susceptible):** represents samples/observations that are susceptible to Septoria. This level indicates the wheat genotypes or environmental conditions where Septoria's impact is significant.
-<!-- 
-```{r}
-library(icardaFIGSr)
-library(dplyr)
-
-data("septoriaDurumWC")
-
-septoriaDurumWC|>
-   count(ST_S)
-```
- -->
 
 ```{r}
 library(icardaFIGSr)
@@ -59,20 +48,14 @@ knn.ST_S <- tuneTrain(data = as.data.frame(septoriaDurumWC),
                       y =  'ST_S',
                       method = 'knn', # using knn algorithm
                       summary = multiClassSummary, # Important for classification tasks
-                      repeats = 3,
-                      classProbs = TRUE) # also important for classification tasks
+                      repeats = 3)
 ```
 
 Let's explore the results..
 
-<!-- ```{r }
-# Class probabilities table
-knn.ST_S$`Class Probabilities`
-``` -->
-
 ```{r, fig.cap = "Class Probabilities for ST_S using KNN"}
 # Plot class probabilities
-knn.ST_S$`Class Probabilities Plot`
+knn.ST_S$ProbabilitiesPlot
 
 ```
 
@@ -90,7 +73,7 @@ knn.ST_S$VariableImportance
 
 ```{r} 
 # Model quality
-knn.ST_S$`Model quality`
+knn.ST_S$ModelQuality
 
 # Training object
 knn.ST_S$Training
@@ -139,7 +122,6 @@ rf.RNO <- tuneTrain(data = BarleyRNOWC,
                       summary = multiClassSummary,
                       imbalanceMethod = "up",
                       process = c("scale", "center"),
-                      classProbs = TRUE,
                       repeats = 3)
 
 # same outputs of binary classification task
@@ -148,7 +130,7 @@ names(rf.RNO)
 
 ```{r, fig.cap = "Class Probabilities for RNO using Random Forest"}
 ## Plot class probabilities
-rf.RNO$`Class Probabilities Plot`
+rf.RNO$ProbabilitiesPlot
 
 ```
 
@@ -176,7 +158,6 @@ svm.DHE <- tuneTrain(data = DurumWheatDHEWC,
                       y =  'DHE',
                       method = 'svmLinear2',
                       summary = defaultSummary,
-                      classProbs = FALSE,
                       repeats = 3)
 
 # Regression outputs
@@ -189,13 +170,13 @@ svm.DHE$VariableImportance
 ```
 
 ```{r, fig.cap = "Predicted vs Actual DHE"}
-svm.DHE$Quality_metrics
-svm.DHE$`Predicted vs Actual Plot`
+svm.DHE$QualityMetrics
+svm.DHE$`Predicted vs. Actual Plot`
 
 ```
 
 ```{r, fig.cap = "Residuals vs predicted DHE"}
-svm.DHE$`Residuals Vs. Predicted Plot`
+svm.DHE$`Residuals vs. Predicted Plot`
 
 ```
 
@@ -231,12 +212,12 @@ rf.DHE_class <- tuneTrain(data = DurumWheatDHEWC,
                               parallelComputing = FALSE,
                               summary = multiClassSummary,
                               imbalanceMethod ="up", # Here we upsample the less represented class (3)
-                              classProbs = TRUE,
                               repeats = 3)
 # List returned objects
 names(rf.DHE_class)
-rf.DHE_class$`Model quality`
-rf.DHE_class$`Probabilities_Plot`
+rf.DHE_class$ModelQuality
+rf.DHE_class$ProbabilitiesPlot
+rf.DHE_class$ROC_Plot
 ```
 
 ## splitData()
@@ -285,8 +266,7 @@ rf.ST_S <- tuneTrain(
                       summary = multiClassSummary, # Important for classification tasks  
                       parallelComputing = FALSE,
                       repeats = 3,
-                      process = c("center","scale"),
-                      classProbs = TRUE) # Important for classification tasks
+                      process = c("center","scale"))
 
 # get test data from one of the model to be used for prediction
 data.test <- rf.ST_S$`Test Data`
