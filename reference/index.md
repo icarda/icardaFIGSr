@@ -31,6 +31,6 @@
 - [`modelingSummary()`](modelingSummary.md) : Get modeling metrics
 - [`septoriaDurumWC`](septoriaDurumWC.md) : septoriaDurumWC
 - [`splitData()`](splitData.md) : Splitting Data
-- [`tuneTrain()`](tuneTrain.md) : Splitting the Data, Tuning and
-  Training the models, and making predictions
+- [`tuneTrain()`](tuneTrain.md) : Automated Data Splitting, Tuning, and
+  Model Training
 - [`varimpPred()`](varimpPred.md) : Variable Importance and Predictions
