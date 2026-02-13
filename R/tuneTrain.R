@@ -81,11 +81,14 @@
 #'  \code{\link[caret]{train}},
 #'  \code{\link[caret]{predict.train}}
 #' @name tuneTrain
-#' @importFrom caret createDataPartition trainControl train predict.train confusionMatrix varImp postResample multiClassSummary
-#' @importFrom utils stack
-#' @importFrom ggplot2 ggplot aes geom_histogram theme_bw scale_colour_brewer scale_fill_brewer labs geom_point geom_line geom_abline facet_wrap ggtitle coord_equal geom_smooth
+#' @importFrom caret createDataPartition trainControl train varImp confusionMatrix postResample multiClassSummary
+#' @importFrom ggplot2 ggplot aes geom_histogram theme_bw scale_colour_brewer scale_fill_brewer labs facet_wrap geom_point geom_line geom_abline annotate coord_equal geom_smooth
+#' @importFrom pROC roc auc ggroc multiclass.roc
 #' @importFrom stats predict
-#' @importFrom pROC auc roc ggroc multiclass.roc
+#' @importFrom utils stack
+#' @importFrom parallel detectCores makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach registerDoSEQ
 #' @export
 
 tuneTrain <- function(data, y, p = 0.7,
