@@ -41,7 +41,7 @@
   on_okay <- function() {
     .credentials <- list("username" = tcltk::tclvalue(usr), "password" = tcltk::tclvalue(pwd))
     assign(".credentials", .credentials, envir = .icardaFIGSEnv)
-    assign(".auth_mode", "system", envir = .icardaFIGSEnv)
+    assign(".auth_mode", "user", envir = .icardaFIGSEnv)
     tcltk::tkdestroy(tt)
   }
   
