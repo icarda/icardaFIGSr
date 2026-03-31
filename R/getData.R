@@ -1,9 +1,25 @@
 .icardaFIGSEnv <- new.env(parent = emptyenv())
 
-#' @title Internal function to authenticate user via GUI
-#' @description creates a GUI to prompt the user for their username and password
+#' @title Internal function to set up the authentication mode and get credentials for user mode
+#' @description set up the authentication mode: system or user. Id user, it creates a GUI to prompt the user for their username and password
 
 .authenticate <- function(){
+  # Identify Authentication Mode: system or user
+  # If env vars exist, mode = 'system'
+  sys_id     <- Sys.getenv("OAUTH_CLIENT_ID")
+  sys_secret <- Sys.getenv("OAUTH_CLIENT_SECRET")
+  
+  # Check for headless environment e.g. Docker or ShinyProxy
+  if (!interactive()) {
+    if (sys_id != "" && sys_secret != "") {
+      assign(".auth_mode", "system", envir = .icardaFIGSEnv)
+      message("Authentication: System mode detected.")
+      return(invisible(NULL))
+    }
+    else stop("OAUTH_CLIENT_ID or OAUTH_CLIENT_SECRET not found in Environment Variables.")
+  }
+  
+  # Otherwise it's 'user' mode 
   tt <- tcltk::tktoplevel()
   tcltk::tkwm.title(tt, "Login")
   
@@ -25,6 +41,7 @@
   on_okay <- function() {
     .credentials <- list("username" = tcltk::tclvalue(usr), "password" = tcltk::tclvalue(pwd))
     assign(".credentials", .credentials, envir = .icardaFIGSEnv)
+    assign(".auth_mode", "system", envir = .icardaFIGSEnv)
     tcltk::tkdestroy(tt)
   }
   
@@ -34,7 +51,6 @@
   
   tcltk::tkfocus(tt)
   tcltk::tkwait.window(tt)
-  
 }
 
 #' @title Internal function to get resource data from ICARDA Genebank API
@@ -45,60 +61,75 @@
 #' @importFrom httr2 oauth_client req_oauth_password request req_body_json req_perform resp_body_json
 
 .get_data <- function(url, body = NULL) {
-
-  # Set up OAuth client
-  client <- httr2::oauth_client(
-    id        = "7ac1999e52ff54d84a2fc8ca018544e0",
-    token_url = "https://grs.icarda.org/api/v1/token",
-    auth      = "body",
-    name      = "icardaFIGSr"
-  )
-
-  # Retrieve the credentials list from the internal environment
-  if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
+  
+  if (!exists(".auth_mode", envir = .icardaFIGSEnv)) {
     .authenticate()
   }
-
-  creds <- get(".credentials", envir = .icardaFIGSEnv)
-
-  req <- httr2::request(url)
-
+  
+  mode <- get(".auth_mode", envir = .icardaFIGSEnv)
+  
+  if (mode == "system") {
+    client <- httr2::oauth_client(
+      id        = Sys.getenv("OAUTH_CLIENT_ID"),
+      token_url = "https://grs.icarda.org/api/v1/token",
+      secret    = Sys.getenv("OAUTH_CLIENT_SECRET"),
+      auth      = "body",
+      name      = "icardaFIGSr"
+    )
+    
+    req <- httr2::request(url) %>%
+      httr2::req_oauth_client_credentials(client = client, scope = "read")
+    
+  }
+  
+  else {
+    creds <- get(".credentials", envir = .icardaFIGSEnv)
+    # Set up OAuth client for password-based authentication
+    client <- httr2::oauth_client(
+      id        = "7ac1999e52ff54d84a2fc8ca018544e0",
+      token_url = "https://grs.icarda.org/api/v1/token",
+      auth      = "body",
+      name      = "icardaFIGSr"
+    )
+    
+    # # Retrieve the credentials list from the internal environment
+    # if (!(".credentials" %in% ls(envir = .icardaFIGSEnv, all.names = TRUE))) {
+    #   .authenticate()
+    # }
+    
+    req <- httr2::request(url) %>%
+      httr2::req_oauth_password(
+        client     = client,
+        username   = creds$username,
+        password   = creds$password,
+        scope      = "read"
+      )
+  }
+  
   if (!is.null(body)) {
     req <- req %>% httr2::req_body_json(body)
   }
-
-  req <- req %>%
-    httr2::req_oauth_password(
-      client     = client,
-      username   = creds$username,
-      password   = creds$password,
-      scope      = "read"
-    )
-
+  
   resp <- tryCatch({
     httr2::req_perform(req) %>% httr2::resp_body_json()
     #req_dry_run(req)
   }, error = function(e) {
+    # Log the error
+    message(paste("API Request Error:", e$message))
     
-    if (grepl("401", e$message) || grepl("invalid_grant", e$message)) {
-      message("Authentication failed: Session expired or wrong credentials. Please log in.")
-
-      # Trigger the UI
-      .authenticate()
-
-      # Retry with new credentials
-      httr2::request(url) %>%
-        httr2::req_body_json(body) %>%
-        httr2::req_oauth_password(
-          client   = client,
-          username = creds$username,
-          password = creds$password,
-          scope   = "read"
-        ) %>%
-        httr2::req_perform()
-    } else {
-      stop(e)
+    # Check for specific OAuth failure (401 Unauthorized)
+    if (grepl("401", e$message) || grepl("invalid_", e$message)) {
+      if (mode == "system") {
+        stop("Authentication Failed: Client ID or Client Secret is invalid. Please check environment variables.")
+      } else {
+        message("Wrong credentials or user session expired. Re-triggering login...")
+        rm(".credentials", envir = .icardaFIGSEnv)
+        .authenticate()
+      }
     }
+    
+    # Print other issues
+    stop(paste("The API returned an error:", e$message))
   })
 
   return(resp)
@@ -115,7 +146,7 @@
 #'  }
 #' @name getCrops
 #' @importFrom purrr pluck
-#' @importFrom dplyr bind_rows
+#' @importFrom data.table rbindlist
 #' @export
 
 getCrops <- function() {
@@ -124,7 +155,7 @@ getCrops <- function() {
 
   crops <- json_data %>%
     purrr::pluck("data") %>%
-    dplyr::bind_rows()
+    data.table::rbindlist(fill = TRUE)
 
   return(crops)
 
@@ -153,7 +184,7 @@ getCrops <- function() {
 #'  }
 #' @name getAccessions
 #' @importFrom purrr pluck
-#' @importFrom dplyr bind_rows
+#' @importFrom data.table rbindlist
 #' @importFrom lifecycle is_present deprecate_warn
 #' @export
 
@@ -196,7 +227,7 @@ getAccessions <- function(crop = "",
   
   passport_data <- json_data %>%
     purrr::pluck("data") %>%
-    dplyr::bind_rows()
+    data.table::rbindlist(fill = TRUE)
   
   return(passport_data)
 }
@@ -216,7 +247,7 @@ getAccessions <- function(crop = "",
 #' @rdname getTraits
 #' @export
 #' @importFrom purrr pluck
-#' @importFrom dplyr bind_rows
+#' @importFrom data.table rbindlist
 
 getTraits <- function(crop) {
 
@@ -227,7 +258,7 @@ getTraits <- function(crop) {
     json_data <- .get_data("https://grs.icarda.org/api/v1/traits", body_list)
     crop_traits <- json_data %>%
       purrr::pluck("data") %>%
-      dplyr::bind_rows()
+      data.table::rbindlist(fill = TRUE)
     return(crop_traits)
   }
 }
@@ -254,7 +285,7 @@ getTraits <- function(crop) {
 #' @rdname getTraitsData
 #' @export
 #' @importFrom purrr pluck
-#' @importFrom dplyr bind_rows
+#' @importFrom data.table rbindlist
 
 getTraitsData <- function(IG, traitID) {
 
@@ -267,7 +298,7 @@ getTraitsData <- function(IG, traitID) {
 
   trait_data <- json_data %>%
     purrr::pluck("data") %>%
-    dplyr::bind_rows()
+    data.table::rbindlist(fill = TRUE)
 
   return(trait_data)
 }

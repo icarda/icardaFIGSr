@@ -41,7 +41,8 @@ Imports:
     terra,
     tidyr,
     utils,
-    foreach
+    foreach,
+    data.table
 Suggests:
     e1071,
     knitr,
