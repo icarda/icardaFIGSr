@@ -76,9 +76,9 @@
 <li>
 <strong>Modeling and Analysis</strong>:
 <ul>
-<li>Train machine learning models with flexible workflows for classification and regression.</li>
-<li>Generate variable importance metrics and predictions.</li>
-<li>Evaluate model performance using tools like ROC curves and confusion matrices.</li>
+<li>Automated data partitionning,</li>
+<li>Two-stage hyperparameter tuning (coarse and refined),</li>
+<li>Comprehensive model evaluation for both classification and regression.</li>
 </ul>
 </li>
 <li>
@@ -123,9 +123,9 @@
 </h4>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Train a regression model on the loaded dataset</span></span>
-<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tuneTrain.html">tuneTrain</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">DurumWheatDHEWC</span>, y <span class="op">=</span> <span class="st">'DHE'</span>, method <span class="op">=</span> <span class="st">'rf'</span>, summary <span class="op">=</span> <span class="va">defaultSummary</span>, classProbs <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tuneTrain.html">tuneTrain</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">DurumWheatDHEWC</span>, y <span class="op">=</span> <span class="st">'DHE'</span>, method <span class="op">=</span> <span class="st">'rf'</span>, summary <span class="op">=</span> <span class="va">defaultSummary</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Evaluate variable importance</span></span>
+<span><span class="co"># Make predictions</span></span>
 <span><span class="va">var_imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/varimpPred.html">varimpPred</a></span><span class="op">(</span>newdata <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="va">`Test Data`</span>, y <span class="op">=</span> <span class="st">'DHE'</span>, model <span class="op">=</span> <span class="va">model</span><span class="op">$</span><span class="va">Training</span><span class="op">)</span></span>
 <span><span class="va">var_imp</span><span class="op">$</span><span class="va">VariableImportancePlot</span></span></code></pre></div>
 </div>
@@ -188,7 +188,7 @@
 <li>
 <strong>Bancy Ngatia</strong> (<em>Author</em>)</li>
 <li>
-<strong>Zainab Azough</strong>, <strong>Amal Ibnelhobyb</strong>, <strong>Fawzy Nawar</strong> (<em>Contributors</em>)</li>
+<strong>Zainab Azough</strong>, <strong>Amal Ibnelhobyb</strong>, <strong>Fawzy Nawar</strong>, <strong>Tamara Ortiz</strong> (<em>Contributors</em>)</li>
 </ul>
 </blockquote>
 </div>

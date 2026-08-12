@@ -20,11 +20,10 @@ purposes.
   - Access and preprocess genebank and environmental datasets.
   - Handle climatic data and crop-specific parameters effectively.
 - **Modeling and Analysis**:
-  - Train machine learning models with flexible workflows for
-    classification and regression.
-  - Generate variable importance metrics and predictions.
-  - Evaluate model performance using tools like ROC curves and confusion
-    matrices.
+  - Automated data partitionning,
+  - Two-stage hyperparameter tuning (coarse and refined),
+  - Comprehensive model evaluation for both classification and
+    regression.
 - **Built-in Datasets**:
   - Access preloaded datasets such as `DurumWheatDHEWC`, `BarleyRNOWC`,
     and `FIGS` subsets, among others.
@@ -64,9 +63,9 @@ head(DurumWheatDHEWC)
 
 ``` r
 # Train a regression model on the loaded dataset
-model <- tuneTrain(data = DurumWheatDHEWC, y = 'DHE', method = 'rf', summary = defaultSummary, classProbs = FALSE)
+model <- tuneTrain(data = DurumWheatDHEWC, y = 'DHE', method = 'rf', summary = defaultSummary)
 
-# Evaluate variable importance
+# Make predictions
 var_imp <- varimpPred(newdata = model$`Test Data`, y = 'DHE', model = model$Training)
 var_imp$VariableImportancePlot
 ```
@@ -118,8 +117,8 @@ This package was developed with contributions from:
 > - **Khadija Aouzal** (*Author*)
 > - **Khadija Aziz** (*Author*)
 > - **Bancy Ngatia** (*Author*)
-> - **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar**
->   (*Contributors*)
+> - **Zainab Azough**, **Amal Ibnelhobyb**, **Fawzy Nawar**, **Tamara
+>   Ortiz** (*Contributors*)
 
 ## Contact
 
