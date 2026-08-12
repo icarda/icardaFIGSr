@@ -86,7 +86,7 @@
     creds <- get(".credentials", envir = .icardaFIGSEnv)
     # Set up OAuth client for password-based authentication
     client <- httr2::oauth_client(
-      id        = "7ac1999e52ff54d84a2fc8ca018544e0",
+      id        = "46ecfea1bb92f66346c8735432d22c48",
       token_url = "https://grs.icarda.org/api/v1/token",
       auth      = "body",
       name      = "icardaFIGSr"
@@ -154,7 +154,6 @@ getCrops <- function() {
   json_data <- .get_data("https://grs.icarda.org/api/v1/crops")
 
   crops <- json_data %>%
-    purrr::pluck("data") %>%
     data.table::rbindlist(fill = TRUE)
 
   return(crops)
